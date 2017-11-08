@@ -1,8 +1,14 @@
-#include "B-Tree.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+//#include "B-Tree.h"
 #include "Registro.h"
 
-int main() {
+#define TRUE 1
+#define FALSE 0
 
+int main()
+{
   printf("Seja bem vindo!\n");
 
   //Variaveris de controle do menu.
@@ -12,8 +18,10 @@ int main() {
   FILE *arq;
 
   //Variaveis utilizadas para leitura de dados.
-  int idMusica;
-  char tituloMusica[tamTitulo], generoMusica[tamGenero];
+  //int idMusica;
+  //char tituloMusica[tamTitulo], generoMusica[tamGenero];
+  char buffer[1000];
+  REGISTRO r;
 
   //Loop principal do programa.
   while(!end) {
@@ -28,6 +36,8 @@ int main() {
     "> ");
     scanf("%d", &option);
 
+
+
     switch(option) {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
       case 1:
@@ -35,7 +45,7 @@ int main() {
       /*Funcionalidade 2 - Insercao	de	novas	músicas	no	arquivo	de	dados	e	no	índice*/
       case 2:
 
-        arq = fopen("dados.dad", "ab"); //Abre o arquivo no modo append, para ser que os
+        arq = fopen("dados.dad", "ab+"); //Abre o arquivo no modo append, para ser que os
         //novos dados sejam escritos no final do arquivo.
         if(!arq) {
           printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
@@ -46,9 +56,17 @@ int main() {
         "Titulo da musica.\n"
         "Genero da musica.\n"
         "> ");
-        scanf("%d", &idMusica);
+        /*scanf("%d", &idMusica);
+        fflush(stdin);
         fgets(tituloMusica, tamTitulo, stdin);
+        tituloMusica[strcspn(tituloMusica, "\n")] = '\0';
         fgets(generoMusica, tamGenero, stdin);
+        generoMusica[strcspn(generoMusica, "\n")] = '\0';*/
+
+        inserir_registro(&r);
+        inserir_arquivo(arq, r, buffer);
+
+
 
         break;
       /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	música */
@@ -71,6 +89,5 @@ int main() {
         break;
     }
   }
-
   return 0;
 }
