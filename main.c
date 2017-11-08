@@ -1,8 +1,14 @@
-#include "B-Tree.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+//#include "B-Tree.h"
 #include "Registro.h"
 
-int main() {
+#define TRUE 1
+#define FALSE 0
 
+int main()
+{
   printf("Seja bem vindo!\n");
 
   //Variaveris de controle do menu.
@@ -13,7 +19,8 @@ int main() {
 
   //Variaveis utilizadas para leitura de dados.
   int idMusica;
-  char tituloMusica[tamTitulo], generoMusica[tamGenero];
+  char tituloMusica[tamTitulo], generoMusica[tamGenero], buffer[1000];
+  REGISTRO r;
 
   //Loop principal do programa.
   while(!end) {
@@ -27,6 +34,8 @@ int main() {
     "6. Fechar o programa.\n"
     "> ");
     scanf("%d", &option);
+
+
 
     switch(option) {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
@@ -47,8 +56,14 @@ int main() {
         "Genero da musica.\n"
         "> ");
         scanf("%d", &idMusica);
+        fflush(stdin);
         fgets(tituloMusica, tamTitulo, stdin);
         fgets(generoMusica, tamGenero, stdin);
+
+        inserir_registro(&r,tituloMusica,generoMusica,idMusica);
+        inserir_arquivo(arq, r, buffer);
+
+
 
         break;
       /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	música */
@@ -71,6 +86,5 @@ int main() {
         break;
     }
   }
-
   return 0;
 }

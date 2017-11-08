@@ -5,6 +5,7 @@
 
 #define tamTitulo 30
 #define tamGenero 20
+#define tamId 10
 
 typedef struct registro {
   int id;
@@ -12,7 +13,7 @@ typedef struct registro {
   char genero[tamGenero];
 } REGISTRO;
 
-int tamanhoRegistro(REGISTRO r, char *buffer);
-int 
-
+int tam_reg(REGISTRO r, char *buffer);
+void inserir_arquivo(FILE *arq,REGISTRO r,char *buffer);
+void inserir_registro(REGISTRO *r,char titulo[tamTitulo],char genero[tamGenero],int id);
 #endif //REGISTRO_H_
