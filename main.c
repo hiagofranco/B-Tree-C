@@ -1,8 +1,14 @@
-#include "B-Tree.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+//#include "B-Tree.h"
 #include "Registro.h"
 
-int main() {
+#define TRUE 1
+#define FALSE 0
 
+int main()
+{
   printf("Seja bem vindo!\n");
 
   //Variaveris de controle do menu.
@@ -12,8 +18,10 @@ int main() {
   FILE *arq;
 
   //Variaveis utilizadas para leitura de dados.
-  int idMusica;
-  char tituloMusica[tamTitulo], generoMusica[tamGenero];
+  //int idMusica;
+  //char tituloMusica[tamTitulo], generoMusica[tamGenero];
+
+  REGISTRO r;
 
   //Loop principal do programa.
   while(!end) {
@@ -28,36 +36,40 @@ int main() {
     "> ");
     scanf("%d", &option);
 
-    switch(option) {
+    switch(option)
+    {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
       case 1:
         break;
-      /*Funcionalidade 2 - Insercao	de	novas	m√∫sicas	no	arquivo	de	dados	e	no	√≠ndice*/
+      /*Funcionalidade 2 - Insercao	de	novas	m˙sicas	no	arquivo	de	dados	e	no	Ìndice*/
       case 2:
 
-        arq = fopen("dados.dad", "ab"); //Abre o arquivo no modo append, para ser que os
+        arq = fopen("dados.dad", "ab+"); //Abre o arquivo no modo append, para ser que os
         //novos dados sejam escritos no final do arquivo.
-        if(!arq) {
-          printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
-          break;
+        if(!arq)
+        {
+            printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
+            exit(1);
         }
+
         printf("\nDigite os dados a serem inseridos na seguinte ordem e separados por \"\\n\":\n"
         "Numero inteiro com ID da musica.\n"
         "Titulo da musica.\n"
         "Genero da musica.\n"
         "> ");
-        scanf("%d", &idMusica);
-        fgets(tituloMusica, tamTitulo, stdin);
-        fgets(generoMusica, tamGenero, stdin);
+        inserir_registro(&r);
+        inserir_arquivo(arq,r);
+
+        fclose(arq);
 
         break;
-      /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	m√∫sica */
+      /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	m˙sica */
       case 3:
         break;
-      /* Funcionalidade 4 - Remo√ß√£o	de m√∫sica	a	partir	do	Id */
+      /* Funcionalidade 4 - RemoÁ„o	de m˙sica	a	partir	do	Id */
       case 4:
         break;
-      /* Funcionalidade 5 - Mostrar	 √Årvore-B */
+      /* Funcionalidade 5 - Mostrar	 ¡rvore-B */
       case 5:
         break;
       /* Sair do programa */
@@ -71,6 +83,5 @@ int main() {
         break;
     }
   }
-
   return 0;
 }
