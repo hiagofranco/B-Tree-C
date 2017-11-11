@@ -13,7 +13,16 @@ typedef struct registro {
   char genero[tamGenero];
 } REGISTRO;
 
+typedef struct cabecalho
+{
+    long int byteoffset_ultimo;
+}CABECALHO;
+
 int tam_reg(REGISTRO r, char *buffer);
-void inserir_arquivo(FILE *arq,REGISTRO r,char *buffer);
+void inserir_arquivo(FILE *arq,REGISTRO r);
 void inserir_registro(REGISTRO *r);
+void inserir_cabecalho(FILE *arq);
+void buscar_registro(FILE *arq,REGISTRO r,int byteOffset);
+void remocao_registro(FILE *arq,REGISTRO r,int byteOffset);
+char byte_offset_ultimo_inserido(FILE *arq);
 #endif //REGISTRO_H_
