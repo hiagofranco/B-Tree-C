@@ -36,7 +36,8 @@ int main()
     "> ");
     scanf("%d", &option);
 
-    switch(option) {
+    switch(option)
+    {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
       case 1:
         break;
@@ -45,17 +46,20 @@ int main()
 
         arq = fopen("dados.dad", "ab+"); //Abre o arquivo no modo append, para ser que os
         //novos dados sejam escritos no final do arquivo.
-        if(!arq) {
-          printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
-          break;
+        if(!arq)
+        {
+            printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
+            exit(1);
         }
+
         printf("\nDigite os dados a serem inseridos na seguinte ordem e separados por \"\\n\":\n"
         "Numero inteiro com ID da musica.\n"
         "Titulo da musica.\n"
         "Genero da musica.\n"
         "> ");
         inserir_registro(&r);
-        inserir_arquivo(arq, r);
+        inserir_arquivo(arq,r);
+
         fclose(arq);
 
         break;
@@ -64,9 +68,6 @@ int main()
         break;
       /* Funcionalidade 4 - Remoção	de música	a	partir	do	Id */
       case 4:
-          /*teste ver se adicionava * ao dado
-            arq = fopen("dados.dad", "rb+");
-            remocao_registro(arq,r,0);*/
         break;
       /* Funcionalidade 5 - Mostrar	 Árvore-B */
       case 5:
