@@ -50,7 +50,7 @@ void inserir_arquivo(FILE *arq,REGISTRO r)
     char size;
 
     size = tam_reg(r, buffer);
-    fseek(arq, SEEK_END, 0);
+    fseek(arq, 0, SEEK_END);
     printf("ftell = %ld\n", ftell(arq));
 
     if(ftell(arq)==0)
@@ -83,13 +83,15 @@ void inserir_arquivo(FILE *arq,REGISTRO r)
     fseek(arq,0,0);
     fread(&i, sizeof(c), 1, arq);
 
-    printf("\ni = %ld  ftell = %ld\n", i, ftell(arq));
+    printf("\nByte Offset ultimo registro = %ld  ftell = %ld\n", i, ftell(arq));
 
+    int j = 1;
     while (fread(&size, sizeof(size), 1, arq))
     {
-        printf("ftell = %ld\n", ftell(arq));
+        printf("Byte Offset do %d registro = %ld\n", j, ftell(arq) - 1);
         fread(buffer, size, 1, arq);
-        printf("ftell = %ld\n", ftell(arq));
+        j++;
+
         int pos = 0;
         sscanf(parser(buffer, &pos), "%d", &r.id);
         strcpy(r.titulo, parser(buffer, &pos));
@@ -141,4 +143,21 @@ void remocao_registro(FILE *arq,REGISTRO r,int byteOffset)
     char flag = '*';
     fseek(arq,byteOffset+1,0);
     fwrite(&flag, sizeof(flag),1, arq);
+}
+
+void ler_ultimo_registro(FILE *arq,REGISTRO r){
+    char size;
+    long int i;
+    char buffer[1000];
+
+    fread(&i, sizeof(CABECALHO), 1, arq);
+    fseek(arq, i, SEEK_SET);
+
+    fread(&size, sizeof(size), 1, arq);
+    fread(buffer, size, 1, arq);
+    int pos = 0;
+    sscanf(parser(buffer, &pos), "%d", &r.id);
+    strcpy(r.titulo, parser(buffer, &pos));
+    strcpy(r.genero, parser(buffer, &pos));
+    printf("size: %d  ID: %d Titulo: %s Genero: %s\n", (int)size, r.id, r.titulo, r.genero);
 }

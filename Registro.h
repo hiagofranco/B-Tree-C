@@ -25,4 +25,5 @@ void inserir_cabecalho(FILE *arq);
 void buscar_registro(FILE *arq,REGISTRO r,int byteOffset);
 void remocao_registro(FILE *arq,REGISTRO r,int byteOffset);
 char byte_offset_ultimo_inserido(FILE *arq);
+void ler_ultimo_registro(FILE *arq,REGISTRO r);
 #endif //REGISTRO_H_

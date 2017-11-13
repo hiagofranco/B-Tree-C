@@ -22,6 +22,7 @@ int main()
   //char tituloMusica[tamTitulo], generoMusica[tamGenero];
 
   REGISTRO r;
+  int i;
 
   //Loop principal do programa.
   while(!end) {
@@ -65,6 +66,17 @@ int main()
         break;
       /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	música */
       case 3:
+
+        //TESTE PARA LER O ULTIMO REGISTRO
+        arq = fopen("dados.dad","rb+");
+        if(!arq)
+        {
+            printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
+            exit(1);
+        }
+
+       ler_ultimo_registro(arq, r);
+
         break;
       /* Funcionalidade 4 - Remoção	de música	a	partir	do	Id */
       case 4:
