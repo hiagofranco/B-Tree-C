@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-//#include "B-Tree.h"
+#include "B-Tree.h"
 #include "Registro.h"
 
 #define TRUE 1
@@ -16,13 +16,14 @@ int main()
 
   //Variavel referente a manipulacao dos arquivos.
   FILE *arq;
+  FILE *index;
 
   //Variaveis utilizadas para leitura de dados.
-  //int idMusica;
-  //char tituloMusica[tamTitulo], generoMusica[tamGenero];
-
+  int pos, i;
+  char size, buffer[1000];
   REGISTRO r;
-  int i;
+  CHAVE chave;
+  CABECALHO_DADOS cabecalhoDados;
 
   //Loop principal do programa.
   while(!end) {
@@ -32,7 +33,8 @@ int main()
     "2. Inserir Musica.\n"
     "3. Pesquisar Musica por ID.\n"
     "4. Remover Musica por ID.\n"
-    "5. Mostrar Arvore-B.\n"
+    //"5. Mostrar Arvore-B.\n"
+    "5. Exibir Arquivo de dados.\n"
     "6. Fechar o programa.\n"
     "> ");
     scanf("%d", &option);
@@ -41,7 +43,41 @@ int main()
     {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
       case 1:
+        arq = fopen("dados.dad", "rb+"); //Abre o arquivo no modo append, para ser que os
+                                        //novos dados sejam escritos no final do arquivo.
+        if(!arq)
+        {
+            printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
+            exit(1);
+        }
+        fread(&cabecalhoDados, sizeof(CABECALHO_DADOS), 1, arq);
+
+        index = fopen("arvore.idx", "wb+");
+        criaBT(index);
+        i = 1;
+        while (fread(&size, sizeof(size), 1, arq))
+        {
+            pos = 0;
+
+            i++;
+            chave.offset = (int)ftell(arq) - 1;
+            fread(buffer, size, 1, arq);
+            sscanf(parser(buffer, &pos), "%d", &chave.id);
+            printf("Inserindo registro %d\nchave.offset = %d   chave.id = %d\n\n", i, chave.offset, chave.id);
+            inserirBT(index, buscaRaiz(index), chave, 0, 0);
+        }
+
+        fclose(index);
+
+        fopen("arvore.idx", "rb+");
+        ler_criacao_btree(index);
+
+
+        fclose(index);
+        fclose(arq);
+
         break;
+
       /*Funcionalidade 2 - Insercao	de	novas	músicas	no	arquivo	de	dados	e	no	índice*/
       case 2:
 
@@ -83,6 +119,8 @@ int main()
         break;
       /* Funcionalidade 5 - Mostrar	 Árvore-B */
       case 5:
+          arq = fopen("dados.dad", "rb+");
+          imprimirArquivoDados(arq);
         break;
       /* Sair do programa */
       case 6:

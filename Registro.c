@@ -44,7 +44,7 @@ void inserir_cabecalho(FILE *arq)
 
 void inserir_arquivo(FILE *arq,REGISTRO r)
 {
-    CABECALHO c;
+    CABECALHO_DADOS c;
 
     char buffer[1000];
     char size;
@@ -150,7 +150,7 @@ void ler_ultimo_registro(FILE *arq,REGISTRO r){
     long int i;
     char buffer[1000];
 
-    fread(&i, sizeof(CABECALHO), 1, arq);
+    fread(&i, sizeof(CABECALHO_DADOS), 1, arq);
     fseek(arq, i, SEEK_SET);
 
     fread(&size, sizeof(size), 1, arq);
@@ -160,4 +160,27 @@ void ler_ultimo_registro(FILE *arq,REGISTRO r){
     strcpy(r.titulo, parser(buffer, &pos));
     strcpy(r.genero, parser(buffer, &pos));
     printf("size: %d  ID: %d Titulo: %s Genero: %s\n", (int)size, r.id, r.titulo, r.genero);
+}
+
+void imprimirArquivoDados(FILE *arq){
+    CABECALHO_DADOS c;
+    REGISTRO r;
+    char size, buffer[1000];
+    fread(&c, sizeof(CABECALHO_DADOS), 1, arq);
+
+    printf("\nByte Offset ultimo registro = %ld  ftell = %ld\n\n", c.byteoffset_ultimo, ftell(arq));
+
+    int j = 1;
+    while (fread(&size, sizeof(size), 1, arq))
+    {
+        printf("Byte Offset do %d registro = %ld\n", j, ftell(arq) - 1);
+        fread(buffer, size, 1, arq);
+        j++;
+
+        int pos = 0;
+        sscanf(parser(buffer, &pos), "%d", &r.id);
+        strcpy(r.titulo, parser(buffer, &pos));
+        strcpy(r.genero, parser(buffer, &pos));
+        printf("size: %d  ID: %d Titulo: %s Genero: %s\n\n", (int)size, r.id, r.titulo, r.genero);
+    }
 }
