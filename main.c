@@ -52,19 +52,24 @@ int main()
         }
         fread(&cabecalhoDados, sizeof(CABECALHO_DADOS), 1, arq);
 
-        index = fopen("arvore.idx", "wb+");
+        index = fopen("arvore.idx", "rb+");
+        if(!index)
+        {
+            index = fopen("arvore.idx", "wb+");
+            fclose(index);
+            index = fopen("arvore.idx", "rb+");
+        }
         criaBT(index);
         i = 1;
         while (fread(&size, sizeof(size), 1, arq))
         {
             pos = 0;
-
-            i++;
             chave.offset = (int)ftell(arq) - 1;
             fread(buffer, size, 1, arq);
             sscanf(parser(buffer, &pos), "%d", &chave.id);
             printf("Inserindo registro %d\nchave.offset = %d   chave.id = %d\n\n", i, chave.offset, chave.id);
             inserirBT(index, buscaRaiz(index), chave, 0, 0);
+            i++;
         }
 
         fclose(index);

@@ -138,7 +138,9 @@ int inserirBT(FILE *arq, int offset, CHAVE chave, int chavePromovida, int direit
 
       p.chaves[posOrd].id = chave.id;
       p.chaves[posOrd].offset = chave.offset;
+      p.numeroChaves++;
       /* Fim do algoritmo de insercao em vetor ordenado. */
+      fwrite(&p, sizeof(PAGINA), 1, arq);
 
       return NO_PROMOTION;
     }
@@ -214,5 +216,5 @@ void ler_criacao_btree(FILE *arq){
     fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
     fread(&pag, sizeof(PAGINA), 1, arq);
     printf(" raiz: %d   estaAtualizada: %d\n ", cabecalho.noRaiz, cabecalho.estaAtualizada);
-    printf(" contador: %d  numeroChaves: %d  1filho: %d  isFolha: %d\n", pag.contadorPagina, pag.numeroChaves, pag.filhos[0], pag.isFolha);
+    printf(" PaginaAtual: %d  numeroChaves: %d  1chave: %d  isFolha: %d\n", pag.contadorPagina, pag.numeroChaves, pag.chaves[0].id, pag.isFolha);
 }
