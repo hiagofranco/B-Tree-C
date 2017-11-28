@@ -19,10 +19,8 @@ int main()
   FILE *index;
 
   //Variaveis utilizadas para leitura de dados.
-  int pos, i;
-  char size, buffer[1000];
   REGISTRO r;
-  CHAVE chave;
+  //CHAVE chave;
   CABECALHO_DADOS cabecalhoDados;
 
   //Loop principal do programa.
@@ -60,17 +58,6 @@ int main()
             index = fopen("arvore.idx", "rb+");
         }
         criaBT(index);
-        i = 1;
-        while (fread(&size, sizeof(size), 1, arq))
-        {
-            pos = 0;
-            chave.offset = (int)ftell(arq) - 1;
-            fread(buffer, size, 1, arq);
-            sscanf(parser(buffer, &pos), "%d", &chave.id);
-            printf("Inserindo registro %d\nchave.offset = %d   chave.id = %d\n\n", i, chave.offset, chave.id);
-            inserirBT(index, buscaRaiz(index), chave, 0, 0);
-            i++;
-        }
 
         fclose(index);
 
