@@ -26,7 +26,7 @@ typedef struct pagina {
   int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM-1]; // Vetor de chaves do no.
   int filhos[ORDEM]; // Armazena os enderecos referentes aos filhos.
-  int isFolha; // Bool que identifica um no folha.
+ // int isFolha; // Bool que identifica um no folha.
 } PAGINA;
 
 /* Esta pagina sera somente utilizada no caso de um split, no qual precisamos
@@ -44,4 +44,5 @@ int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_enc
 void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE promo_key, int promo_r_child, PAGINA *newp, int *contadorDePaginas);
 void ler_criacao_btree(FILE *index);
 int buscaRaiz(FILE *arq);
+void ler_btree(FILE *arq);
 #endif //BTREE_H_

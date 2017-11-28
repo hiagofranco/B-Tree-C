@@ -49,13 +49,8 @@ int main()
         }
 
         /* Inicio do algoritmo de driver */
-        index = fopen("arvore.idx", "wb");
-        if(!index) {
-          printf("Erro ao abrir o arquivo de indice da funcionalidade 1 (indice.idx)!\n");
-          exit(1);
-        }
-        else {
           criaBT(index); //Cria a raiz e o cabecalho
+          index = fopen("arvore.idx", "rb+");
           // Pula o cabecalho e vai para o primeiro dado.
           fseek(arq, sizeof(CABECALHO_DADOS), SEEK_SET);
 
@@ -97,6 +92,7 @@ int main()
             fread(buffer, size, 1, arq);
             pos = 0;
             sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
+            printf("\nInserindo ID %d", chaveInserida.id);
 
             //Coloca os valores em default.
             chavePromovida.id = -1;
@@ -130,7 +126,6 @@ int main()
           fseek(index, 0, 0);
           fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
           fclose(index);
-        }
 
         break;
 
@@ -172,6 +167,7 @@ int main()
         break;
       /* Funcionalidade 4 - Remo��o	de m�sica	a	partir	do	Id */
       case 4:
+          ler_btree(index);
         break;
       /* Funcionalidade 5 - Mostrar	 �rvore-B */
       case 5:
