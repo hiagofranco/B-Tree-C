@@ -28,7 +28,6 @@ void criaBT(FILE *arq) {
   arq = fopen("arvore.idx", "wb");
   fwrite(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
   fwrite(&raiz, sizeof(PAGINA), 1, arq);
-  fclose(arq);
 }
 
 /* Recebe primeiro o offset do no raiz */
@@ -66,10 +65,10 @@ int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_enc
   }
 }
 
-/* offset = página da árvore-B que está atualmente em uso (inicialmente, a raiz).
+/* offset = pï¿½gina da ï¿½rvore-B que estï¿½ atualmente em uso (inicialmente, a raiz).
  * chave = a chave a ser inserida.
- * chavePromovida = retorna a chave promovida, caso a inserção resulte no
- * particionamento e na promoção da chave (parametro de recursao).
+ * chavePromovida = retorna a chave promovida, caso a inserï¿½ï¿½o resulte no
+ * particionamento e na promoï¿½ï¿½o da chave (parametro de recursao).
  * direitoChavePromovida = retorna o ponteiro para o filho direito de chavePromovida
  * (parametro de recursao).
  * Inicializa passand a no raiz e valores invalidos (-1) para os parametros de recursao.
@@ -230,18 +229,18 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE promo_key, int p
   }
 
   //Preciso lembrar de att o cabecalho depois.
-  *contadorDePaginas++;
+  (*contadorDePaginas)++;
   newP->RRNDaPagina = *contadorDePaginas;
 }
 
-//função que adquire o RRN do nó raiz
+//funcao que adquire o RRN do no raiz
 int buscaRaiz(FILE *arq){
     CABECALHO_BTREE cabecalho;
     fseek(arq, 0, 0);
     fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
     return cabecalho.noRaiz;
 }
-
+/*
 void ler_criacao_btree(FILE *arq){
     CABECALHO_BTREE cabecalho;
     PAGINA pag;
@@ -249,4 +248,4 @@ void ler_criacao_btree(FILE *arq){
     fread(&pag, sizeof(PAGINA), 1, arq);
     printf(" raiz: %d   estaAtualizada: %d\n ", cabecalho.noRaiz, cabecalho.estaAtualizada);
     printf(" contador: %d  numeroChaves: %d  1filho: %d  isFolha: %d\n", pag.RRNDaPagina, pag.numeroChaves, pag.filhos[0], pag.isFolha);
-}
+}*/

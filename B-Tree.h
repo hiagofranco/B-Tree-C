@@ -43,4 +43,5 @@ int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int dire
 int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada);
 void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE promo_key, int promo_r_child, PAGINA *newp, int *contadorDePaginas);
 void ler_criacao_btree(FILE *index);
+int buscaRaiz(FILE *arq);
 #endif //BTREE_H_
