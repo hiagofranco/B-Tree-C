@@ -75,14 +75,14 @@ int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_enc
  * Inicializa passand a no raiz e valores invalidos (-1) para os parametros de recursao.
 */
 
-int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int direitoChavePromovida, int *contadorDePaginas) {
+int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas) {
   PAGINA p, newP;
   int i;
   int pos = 0;
 
   if(offset == -1) { //Chegamos em um no folha.
     chavePromovida = chave;
-    direitoChavePromovida = -1;
+    *direitoChavePromovida = -1;
     return PROMOTION;
   }
   else {
@@ -98,17 +98,17 @@ int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int dire
 
     /* Aqui procuramos a posicao na qual a chave deveria estar e, entao, checamos
     se ela realmente ja existe. */
-    if(chave.id > p.chaves[ORDEM-2].id)
+    if(chave->id > p.chaves[ORDEM-2].id)
       pos = ORDEM-2;
     else {
       for (i = 0; i < ORDEM-2; i++) //Aqui como ja foi verifcado a ultima pos, entao ORDEM-2.
-        if(chave.id > p.chaves[i].id)
+        if(chave->id > p.chaves[i].id)
           pos++;
     }
 
     /* Se a chave ja existe, entao retornamos um erro, visto que nao aceitamos chaves
     duplicados */
-    if(chave.id == p.chaves[pos].id)
+    if(chave->id == p.chaves[pos].id)
       return ERROR; //chave duplicada!
 
     /*Chamada de recursao com o objetivo de se atingir os nos folha da arvore. */
@@ -134,12 +134,12 @@ int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int dire
         }
       }
 
-      if(p.chaves[fim-1].id < chave.id)
+      if(p.chaves[fim-1].id < chave->id)
         posOrd = fim;
 
       else{
         for(i = 0; i < ORDEM-1; i++) {
-          if(p.chaves[i].id != -1 && p.chaves[i].id >= chave.id) {
+          if(p.chaves[i].id != -1 && p.chaves[i].id >= chave->id) {
             posOrd = i;
             break;
           }
@@ -149,8 +149,8 @@ int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int dire
       for(i = fim; i >= posOrd; i--)
         p.chaves[i+1].id = p.chaves[i].id;
 
-      p.chaves[posOrd].id = chave.id;
-      p.chaves[posOrd].offset = chave.offset;
+      p.chaves[posOrd].id = chave->id;
+      p.chaves[posOrd].offset = chave->offset;
 
     for(caralha = 0; caralha < ORDEM -1; caralha++){
         printf("chave%d = %d   ", caralha, p.chaves[caralha].id);
@@ -163,16 +163,27 @@ int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int dire
     }
 
     else { //Insercao de chave com particionamento.
-            printf("SPLIT ");
-      split(arq, chave.id, chave.offset, &p, chavePromovida, direitoChavePromovida, &newP, contadorDePaginas);
+        printf("  \\SPLIT//  \n");
+      split(arq, chave->id, chave->offset, &p, chavePromovida, direitoChavePromovida, &newP, contadorDePaginas);
+      fseek(arq, sizeof(CABECALHO_BTREE) + (p.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&p, sizeof(PAGINA), 1, arq);
+      fseek(arq, sizeof(CABECALHO_BTREE) + (newP.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&newP, sizeof(PAGINA), 1, arq);
+      for(i = 0; i < ORDEM - 1; i++){
+        printf(" %d ", p.chaves[i].id);
+      }
+      printf("\n");
+      for(i = 0; i < ORDEM - 1; i++){
+        printf(" %d ", newP.chaves[i].id);
+      }
+
+      printf("\nchavePromovida=%d", chavePromovida->id);
       return PROMOTION;
     }
   }
 }
 
-void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE promo_key, int promo_r_child, PAGINA *newP, int *contadorDePaginas) {
+void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas) {
   PAGINA_SPLIT pSplit;
 
   int i;
@@ -217,36 +228,48 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE promo_key, int p
   pSplit.chaves[posOrd].offset = i_offset;
   /* Fim do algoritmo de insercao em vetor ordenado. */
 
-  /* Aqui pego a chave do meio do vetor. Se ele for impar, tudo certo. Se ele for par,
-   * irei pegar a chave a direita, por isso o ORDEM/2 + 1 */
-  promo_key = pSplit.chaves[ORDEM/2];
-
-  /* Recebe o endereco da nova pagina que esta a direta */
-  promo_r_child = newP->RRNDaPagina;
-
   /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
   for(i = 0; i < ORDEM/2; i++)
     p->chaves[i] = pSplit.chaves[i];
-
-  for(i = 0; i < ORDEM/2; i++)
 
   for(i = ORDEM/2; i < ORDEM-1; i++) {
     p->chaves[i].id = -1;
     p->chaves[i].offset = -1;
   }
 
-  /* Copia as chaves e os filhos de Psplit para P a partir da chave promovida */
-  for(i = ORDEM/2 + 1; i < ORDEM; i++)
-    newP->chaves[i - ORDEM/2 + 1] = pSplit.chaves[i];
+    printf("\n");
+  for(i = 0; i < ORDEM; i++){
+    printf("chavePSplit[%d]=%d   ", i, pSplit.chaves[i].id);
+  }
+  printf("\n");
+
+  /* Copia as chaves e os filhos de Psplit para newP a partir da chave promovida */
+  for(i = ORDEM/2 + 1; i < ORDEM; i++){
+    newP->chaves[i - ORDEM/2 - 1] = pSplit.chaves[i];
+    printf("i - ORDEM/2 + 1=%d  pSplit.chaves[i].id=%d\n ", i - ORDEM/2 + 1,pSplit.chaves[i].id );
+  }
+
 
   for(i = ORDEM/2; i < ORDEM-1; i++) {
     newP->chaves[i].id = -1;
     newP->chaves[i].offset = -1;
   }
 
+  for(i = 0; i < ORDEM; i++){
+        newP->filhos[i] = -1;
+    }
+
+  newP->numeroChaves = ORDEM/2;
   //Preciso lembrar de att o cabecalho depois.
-  (*contadorDePaginas)++;
   newP->RRNDaPagina = *contadorDePaginas;
+  (*contadorDePaginas)++;
+
+    /* Aqui pego a chave do meio do vetor. Se ele for impar, tudo certo. Se ele for par,
+   * irei pegar a chave a direita, por isso o ORDEM/2 + 1 */
+  *promo_key = pSplit.chaves[ORDEM/2];
+  printf("\npromo_key=%d\n", promo_key->id);
+  /* Recebe o endereco da nova pagina que esta a direta */
+  *promo_r_child = newP->RRNDaPagina;
 }
 
 //funcao que adquire o RRN do no raiz
@@ -262,18 +285,26 @@ void ler_btree(FILE *arq){
     fseek(arq, 0, 0);
     CABECALHO_BTREE cabecalho;
     PAGINA pag;
-    int i;
+    int i, j;
     fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
     printf("\nnoRaiz = %d   contadordePaginas = %d", cabecalho.noRaiz, cabecalho.contadorDePaginas);
-    while(fread(&pag, sizeof(PAGINA), 1, arq)){
+    for(j = 0; j < cabecalho.contadorDePaginas; j++){
+        fread(&pag, sizeof(PAGINA), 1, arq);
         printf("\n\nRRNDaPagina = %d", pag.RRNDaPagina);
-        printf("\nnumeroChaves = %d", pag.numeroChaves);
+        printf("\nnumeroChaves = %d\n", pag.numeroChaves);
         i = 0;
-        while(i < ORDEM - 1 )
+        while(i < ORDEM - 1 ){
             printf("chaves[%d]: (ID = %d  Off = %d)   ", i, pag.chaves[i].id, pag.chaves[i].offset);
             i++;
         }
+        printf("\n");
+        i = 0;
+        while(i < ORDEM){
+            printf("filhos[%d]: %d   ", i, pag.filhos[i]);
+            i++;
+        }
     }
+}
 /*
 void ler_criacao_btree(FILE *arq){
     CABECALHO_BTREE cabecalho;

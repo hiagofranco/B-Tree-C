@@ -39,9 +39,9 @@ typedef struct paginaSplit {
 } PAGINA_SPLIT;
 
 void criaBT();
-int inserirBT(FILE *arq, int offset, CHAVE chave, CHAVE chavePromovida, int direitoChavePromovida, int *contadorDePaginas);
+int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas);
 int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada);
-void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE promo_key, int promo_r_child, PAGINA *newp, int *contadorDePaginas);
+void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas);
 void ler_criacao_btree(FILE *index);
 int buscaRaiz(FILE *arq);
 void ler_btree(FILE *arq);

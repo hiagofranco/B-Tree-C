@@ -13,6 +13,7 @@ int main()
 
   //Variaveris de controle do menu.
   int end = FALSE, option;
+  int invalido = -1;
 
   //Variavel referente a manipulacao dos arquivos.
   FILE *arq; // Arquivo de dados
@@ -30,7 +31,8 @@ int main()
     "1. Criar indice.\n"
     "2. Inserir Musica.\n"
     "3. Pesquisar Musica por ID.\n"
-    "4. Remover Musica por ID.\n"
+    //"4. Remover Musica por ID.\n"
+    "4. Exibir Arquivo da B-Tree.\n"
     //"5. Mostrar Arvore-B.\n"
     "5. Exibir Arquivo de dados.\n"
     "6. Fechar o programa.\n"
@@ -82,7 +84,7 @@ int main()
           printf("\nnao inseriu");
 
           // Insere o no raiz;
-          inserirBT(index, 0, chaveInserida, chavePromovida, -1, &(cabecalhoTree.contadorDePaginas));
+          inserirBT(index, 0, &chaveInserida, &chavePromovida, &invalido, &(cabecalhoTree.contadorDePaginas));
 
           printf("\ninseriu primeiro");
           while(fread(&size, sizeof(size), 1, arq)) {
@@ -101,11 +103,11 @@ int main()
 
             int promo_r_child = -1;
             int root = buscaRaiz(index);
-            if(inserirBT(index, root, chaveInserida, chavePromovida, promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
+            if(inserirBT(index, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
               PAGINA newRoot;
 
               cabecalhoTree.contadorDePaginas++;
-              newRoot.RRNDaPagina = cabecalhoTree.contadorDePaginas;
+              newRoot.RRNDaPagina = cabecalhoTree.contadorDePaginas - 1;
 
               int i;
               for(i = 0; i < ORDEM-1; i++) {
@@ -116,11 +118,14 @@ int main()
 
               newRoot.numeroChaves = 1;
               newRoot.chaves[0] = chavePromovida;
+              printf("\nchavePromovida=%d", chavePromovida.id);
 
               newRoot.filhos[0] = root;
               newRoot.filhos[1] = promo_r_child;
 
               cabecalhoTree.noRaiz = newRoot.RRNDaPagina;
+              fseek(index, sizeof(CABECALHO_BTREE) + (newRoot.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
+              fwrite(&newRoot, sizeof(PAGINA), 1, index);
             }
           }
           fseek(index, 0, 0);
