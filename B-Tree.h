@@ -8,11 +8,12 @@
 #define FALSE 0
 #define PROMOTION 2
 #define NO_PROMOTION 3
-#define ERRO 4
+#define ERROR 4
 
-typedef struct cabecalho_btree {
+typedef struct cabecalho {
   int noRaiz;
   int estaAtualizada;
+  int contadorDePaginas;
 } CABECALHO_BTREE;
 
 typedef struct chave {
@@ -21,30 +22,27 @@ typedef struct chave {
 } CHAVE;
 
 typedef struct pagina {
-  int contadorPagina; // Guarda o numero da pagina na qual estamos.
+  int RRNDaPagina; // Guarda o numero da pagina na qual estamos.
   int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM-1]; // Vetor de chaves do no.
   int filhos[ORDEM]; // Armazena os enderecos referentes aos filhos.
-  int isFolha; // Bool que identifica um no folha.
+ // int isFolha; // Bool que identifica um no folha.
 } PAGINA;
 
 /* Esta pagina sera somente utilizada no caso de um split, no qual precisamos
  * temporariamente de um noh que comporte uma chave a mais */
 typedef struct paginaSplit {
-  int contadorPagina; // Guarda o numero da pagina na qual estamos.
-  int numeroChaves; // Guarda o numero de chaves do no.
+  //int contadorPagina; // Guarda o numero da pagina na qual estamos.
+  //int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM]; // Vetor de chaves do no.
   int filhos[ORDEM+1]; // Armazena os enderecos referentes aos filhos.
-  int isFolha; // Bool que identifica um no folha.
 } PAGINA_SPLIT;
 
-
-void criaBT(FILE *arq);
-int inserirBT(FILE *arq, int offset, CHAVE chave, int chavePromovida, int direitoChavePromovida);
-int buscaBT(FILE *arq, int RRN, int chave, int RRN_encontrado, int pos_encontrada);
-void split(FILE *arq, int i_key, int i_RRN, PAGINA p, int promo_key, int promo_r_child, PAGINA newp);
-void ler_criacao_btree(FILE *arq);
+void criaBT();
+int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas);
+int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada);
+void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas);
+void ler_criacao_btree(FILE *index);
 int buscaRaiz(FILE *arq);
-
-
+void ler_btree(FILE *arq);
 #endif //BTREE_H_

@@ -13,17 +13,16 @@ int main()
 
   //Variaveris de controle do menu.
   int end = FALSE, option;
+  int invalido = -1;
 
   //Variavel referente a manipulacao dos arquivos.
-  FILE *arq;
-  FILE *index;
+  FILE *arq; // Arquivo de dados
+  FILE *index; //Arquivo da b-Tree
 
   //Variaveis utilizadas para leitura de dados.
-  int pos, i;
-  char size, buffer[1000];
   REGISTRO r;
-  CHAVE chave;
-  CABECALHO_DADOS cabecalhoDados;
+  //CHAVE chave;
+  //CABECALHO_DADOS cabecalhoDados;
 
   //Loop principal do programa.
   while(!end) {
@@ -32,7 +31,8 @@ int main()
     "1. Criar indice.\n"
     "2. Inserir Musica.\n"
     "3. Pesquisar Musica por ID.\n"
-    "4. Remover Musica por ID.\n"
+    //"4. Remover Musica por ID.\n"
+    "4. Exibir Arquivo da B-Tree.\n"
     //"5. Mostrar Arvore-B.\n"
     "5. Exibir Arquivo de dados.\n"
     "6. Fechar o programa.\n"
@@ -43,42 +43,99 @@ int main()
     {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
       case 1:
-        arq = fopen("dados.dad", "rb+"); //Abre o arquivo no modo append, para ser que os
-                                        //novos dados sejam escritos no final do arquivo.
+        arq = fopen("dados.dad", "rb");
         if(!arq)
         {
-            printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
-            exit(1);
+            printf("Erro ao abrir o arquivo de dados na Funcionalidade 1! (dados.dad)\n");
+            break;
         }
-        fread(&cabecalhoDados, sizeof(CABECALHO_DADOS), 1, arq);
 
-        index = fopen("arvore.idx", "wb+");
-        criaBT(index);
-        i = 1;
-        while (fread(&size, sizeof(size), 1, arq))
-        {
-            pos = 0;
+        /* Inicio do algoritmo de driver */
+          criaBT(index); //Cria a raiz e o cabecalho
+          index = fopen("arvore.idx", "rb+");
+          // Pula o cabecalho e vai para o primeiro dado.
+          fseek(arq, sizeof(CABECALHO_DADOS), SEEK_SET);
 
-            i++;
-            chave.offset = (int)ftell(arq) - 1;
+          //Tras o cabecalho da b-tree para a memoria.
+          CABECALHO_BTREE cabecalhoTree;
+          fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+
+          // Le o tamanho do registro.
+          char size;
+          fread(&size, sizeof(size), 1, arq);
+
+          CHAVE chaveInserida; //Varaivel de chave a ser inserida
+
+          /* Pego o endereco e subtraio o valor da varivel de tamanho, ja que
+          esta valor nao entra do calculo do registro */
+          chaveInserida.offset = ftell(arq) - sizeof(size);
+
+          // Criar um buffer para armaezenar o registro.
+          char buffer[1000];
+          fread(buffer, size, 1, arq);
+
+          // Divide o registro ate o divisor de campos, e aramezena o id.
+          int pos = 0;
+          sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
+
+          CHAVE chavePromovida;
+          chavePromovida.id = -1;
+          chavePromovida.offset = -1;
+          printf("\nnao inseriu");
+
+          // Insere o no raiz;
+          inserirBT(index, 0, &chaveInserida, &chavePromovida, &invalido, &(cabecalhoTree.contadorDePaginas));
+
+          printf("\ninseriu primeiro");
+          while(fread(&size, sizeof(size), 1, arq)) {
+
+            // Pega o proximo registro para inserir na b-tree;
+            chaveInserida.offset = (int)ftell(arq) - sizeof(size);
             fread(buffer, size, 1, arq);
-            sscanf(parser(buffer, &pos), "%d", &chave.id);
-            printf("Inserindo registro %d\nchave.offset = %d   chave.id = %d\n\n", i, chave.offset, chave.id);
-            inserirBT(index, buscaRaiz(index), chave, 0, 0);
-        }
+            pos = 0;
+            sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
+            printf("\nInserindo ID %d  de ByteOffset  %d", chaveInserida.id, chaveInserida.offset);
 
-        fclose(index);
+            //Coloca os valores em default.
+            chavePromovida.id = -1;
+            chavePromovida.offset = -1;
+            printf("\ncontadorDePaginas = %d", cabecalhoTree.contadorDePaginas);
 
-        fopen("arvore.idx", "rb+");
-        ler_criacao_btree(index);
+            int promo_r_child = -1;
+            int root = cabecalhoTree.noRaiz;
+            printf("\nroot = %d", root);
+            if(inserirBT(index, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
+              PAGINA newRoot;
 
+              cabecalhoTree.contadorDePaginas++;
+              newRoot.RRNDaPagina = cabecalhoTree.contadorDePaginas - 1;
 
-        fclose(index);
-        fclose(arq);
+              int i;
+              for(i = 0; i < ORDEM-1; i++) {
+                newRoot.chaves[i].id = -1;
+                newRoot.chaves[i].offset = -1;
+              }
+              for(i = 0; i < ORDEM; i++) newRoot.filhos[i] = -1;
+
+              newRoot.numeroChaves = 1;
+              newRoot.chaves[0] = chavePromovida;
+              printf("\nchavePromovida=%d", chavePromovida.id);
+
+              newRoot.filhos[0] = root;
+              newRoot.filhos[1] = promo_r_child;
+
+              cabecalhoTree.noRaiz = newRoot.RRNDaPagina;
+              fseek(index, sizeof(CABECALHO_BTREE) + (newRoot.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
+              fwrite(&newRoot, sizeof(PAGINA), 1, index);
+            }
+          }
+          fseek(index, 0, 0);
+          fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+          fclose(index);
 
         break;
 
-      /*Funcionalidade 2 - Insercao	de	novas	músicas	no	arquivo	de	dados	e	no	índice*/
+      /*Funcionalidade 2 - Insercao	de	novas	mï¿½sicas	no	arquivo	de	dados	e	no	ï¿½ndice*/
       case 2:
 
         arq = fopen("dados.dad", "ab+"); //Abre o arquivo no modo append, para ser que os
@@ -100,7 +157,7 @@ int main()
         fclose(arq);
 
         break;
-      /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	música */
+      /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	mï¿½sica */
       case 3:
 
         //TESTE PARA LER O ULTIMO REGISTRO
@@ -114,10 +171,11 @@ int main()
        ler_ultimo_registro(arq, r);
 
         break;
-      /* Funcionalidade 4 - Remoção	de música	a	partir	do	Id */
+      /* Funcionalidade 4 - Remoï¿½ï¿½o	de mï¿½sica	a	partir	do	Id */
       case 4:
+          ler_btree(index);
         break;
-      /* Funcionalidade 5 - Mostrar	 Árvore-B */
+      /* Funcionalidade 5 - Mostrar	 ï¿½rvore-B */
       case 5:
           arq = fopen("dados.dad", "rb+");
           imprimirArquivoDados(arq);
