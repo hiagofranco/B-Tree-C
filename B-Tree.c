@@ -98,18 +98,32 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
 
     /* Aqui procuramos a posicao na qual a chave deveria estar e, entao, checamos
     se ela realmente ja existe. */
+    for(i = 0; i < p.numeroChaves; i++){
+        if(chave->id == p.chaves[i].id){
+            return ERROR;
+        }
+        if(chave->id < p.chaves[i].id){
+            pos = i;
+            break;
+        }
+    }
+
+    if(i == p.numeroChaves){
+        pos = i;
+    }
+    /*
     if(chave->id > p.chaves[ORDEM-2].id)
       pos = ORDEM-2;
     else {
       for (i = 0; i < ORDEM-2; i++) //Aqui como ja foi verifcado a ultima pos, entao ORDEM-2.
         if(chave->id > p.chaves[i].id)
           pos++;
-    }
+    }*/
 
     /* Se a chave ja existe, entao retornamos um erro, visto que nao aceitamos chaves
     duplicados */
-    if(chave->id == p.chaves[pos].id)
-      return ERROR; //chave duplicada!
+    /*if(chave->id == p.chaves[pos].id)
+      return ERROR; //chave duplicada!*/
 
     /*Chamada de recursao com o objetivo de se atingir os nos folha da arvore. */
     int return_value = inserirBT(arq, p.filhos[pos], chave, chavePromovida, direitoChavePromovida, contadorDePaginas);
@@ -122,7 +136,7 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
 
     else if(p.numeroChaves < ORDEM-1) { //Checa se ainda ha espaco.
       p.numeroChaves++;
-      printf("\n chegou na insercao ordenada");
+      printf("\n chegou na insercao ordenada\n");
       int posOrd, fim;
       posOrd = -1;
       fim = ORDEM-1; //Verificar se eh inutil no futuro.
@@ -147,7 +161,7 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
       }
 
       for(i = fim; i >= posOrd; i--)
-        p.chaves[i+1].id = p.chaves[i].id;
+        p.chaves[i+1] = p.chaves[i];
 
       p.chaves[posOrd].id = chave->id;
       p.chaves[posOrd].offset = chave->offset;
@@ -260,6 +274,7 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
     }
 
   newP->numeroChaves = ORDEM/2;
+  p->numeroChaves = ORDEM/2;
   //Preciso lembrar de att o cabecalho depois.
   newP->RRNDaPagina = *contadorDePaginas;
   (*contadorDePaginas)++;

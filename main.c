@@ -90,11 +90,11 @@ int main()
           while(fread(&size, sizeof(size), 1, arq)) {
 
             // Pega o proximo registro para inserir na b-tree;
-            chaveInserida.offset = ftell(arq) - sizeof(size);
+            chaveInserida.offset = (int)ftell(arq) - sizeof(size);
             fread(buffer, size, 1, arq);
             pos = 0;
             sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
-            printf("\nInserindo ID %d", chaveInserida.id);
+            printf("\nInserindo ID %d  de ByteOffset  %d", chaveInserida.id, chaveInserida.offset);
 
             //Coloca os valores em default.
             chavePromovida.id = -1;
@@ -102,7 +102,8 @@ int main()
             printf("\ncontadorDePaginas = %d", cabecalhoTree.contadorDePaginas);
 
             int promo_r_child = -1;
-            int root = buscaRaiz(index);
+            int root = cabecalhoTree.noRaiz;
+            printf("\nroot = %d", root);
             if(inserirBT(index, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
               PAGINA newRoot;
 
