@@ -141,12 +141,19 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
         }
       }
 
-      if(posOrd != ORDEM - 2){
-        for(i = fim; i >= posOrd; i--){
-        p.chaves[i+1] = p.chaves[i];
+      printf("\n");
+    for(i = fim; i >= posOrd; i--){
+        if(i + 1 != ORDEM - 1){
+            p.chaves[i+1] = p.chaves[i];
+            printf("i + 1 = %d", i + 1);
         }
-      }
-      p.chaves[posOrd] = *chave;
+    }
+    printf("\n");
+    for(i = 0; i < ORDEM; i++){
+        printf("p.chaves[%d]=%d", i, p.chaves[i].id);
+    }
+    p.chaves[posOrd] = *chave;
+
 
       for(i = fim; i >= posOrd; i--){
         p.filhos[i+1] = p.filhos[i];
@@ -236,23 +243,27 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
     }
   }
 
-  if(posOrd != ORDEM - 1){
     for(i = fim; i >= posOrd; i--){
-      pSplit.chaves[i+1] = pSplit.chaves[i];
+        if(i + 1 != ORDEM){
+            pSplit.chaves[i+1] = pSplit.chaves[i];
+        }
     }
-  }
 
   pSplit.chaves[posOrd].id = i_key;
   pSplit.chaves[posOrd].offset = i_offset;
   /* Fim do algoritmo de insercao em vetor ordenado. */
 
-  //se a pagina nao for folha, o ultimo filho tem o rrn da nova pagina
-  if(pSplit.filhos[ORDEM - 1] != -1){
+  for(i = fim; i >= posOrd; i--){
+    pSplit.filhos[i+1] = pSplit.filhos[i];
+  }
+
+  //se a pagina nao for folha, temos que colocar o filho certo
+  if(pSplit.filhos[posOrd] != -1){
     if(*promo_r_child == -1){
-        pSplit.filhos[ORDEM] = RRNPaginaSplitada;
+        pSplit.filhos[posOrd + 1] = RRNPaginaSplitada;
     }
     else{
-        pSplit.filhos[ORDEM] = *promo_r_child;
+        pSplit.filhos[posOrd + 1] = *promo_r_child;
     }
 
   }

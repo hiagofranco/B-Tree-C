@@ -38,6 +38,7 @@ int main()
     "6. Fechar o programa.\n"
     "> ");
     scanf("%d", &option);
+    fflush(stdin);
 
     switch(option)
     {

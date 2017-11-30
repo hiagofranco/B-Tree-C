@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Registro.h"
+#include <ctype.h>
 
 
 int tam_reg(REGISTRO r, char *buffer)
@@ -102,15 +103,66 @@ void inserir_arquivo(FILE *arq,REGISTRO r)
 }
 void inserir_registro(REGISTRO *r)
 {
-    scanf("%d", &r->id);
-    fflush(stdin);
-    fgets(r->titulo, tamTitulo, stdin);
-    r->titulo[strcspn(r->titulo, "\n")] = '\0';     /* strcspn procura a primeira ocorrencia  do segundo parametro no primeiro
-                                                    e retorna a posição do vetor na qual ocorre, assim podemos tirar o \n
+    char id[100];
+    int i,tamanho,controle;
+    do
+    {
+        controle=0;
+        printf("ID:");
+        fgets(id,sizeof(id),stdin);
+        id[strcspn(id, "\n")] = '\0';
+        tamanho = strlen(id);
+        for(i=0;i<tamanho;i++)
+        {
+            if(isdigit(id[i])==0)
+            {
+                controle=1;
+            }
+        }
+        r->id = atoi(id);
+
+        printf("Titulo:");
+        fgets(r->titulo, tamTitulo, stdin);
+        r->titulo[strcspn(r->titulo, "\n")] = '\0';     /* strcspn procura a primeira ocorrencia  do segundo parametro no primeiro
+                                                        e retorna a posição do vetor na qual ocorre, assim podemos tirar o \n
                                                         que aparece quando apertamos enter e o substituimos por \0  */
-    fgets(r->genero, tamGenero, stdin);
-    r->genero[strcspn(r->genero, "\n")] = '\0';
-    return;
+        tamanho = strlen(r->titulo);
+        for(i=0;i<tamanho;i++)
+        {
+            if(r->titulo[i]!=' ')
+            {
+                if(isalpha(r->titulo[i])==0)
+                {
+                    controle=1;
+                }
+            }
+        }
+
+        printf("Genero:");
+        fgets(r->genero, tamGenero, stdin);
+        r->genero[strcspn(r->genero, "\n")] = '\0';
+
+        tamanho = strlen(r->genero);
+        for(i=0;i<tamanho;i++)
+        {
+            if(r->genero[i]!=' ')
+            {
+                if(isalpha(r->genero[i])==0)
+                {
+                    controle=1;
+                }
+            }
+        }
+        if(controle==1)
+        {
+            printf("Ocorreu um erro,caracteres invalidos inseridos\n");
+            printf("\n Por favor, digite os dados a serem inseridos na seguinte ordem e separados por \"\\n\":\n"
+            "Numero inteiro com ID da musica.\n"
+            "Titulo da musica.\n"
+            "Genero da musica.\n"
+            "> ");
+        }
+    }while(controle==1);
 }
 //busca um registro de acordo com o deslocamento ao ser realizado no arquivo
 void buscar_registro(FILE *arq,REGISTRO r,int byteOffset)
