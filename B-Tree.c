@@ -117,7 +117,6 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
 
     else if(p.numeroChaves < ORDEM-1) { //Checa se ainda ha espaco.
       p.numeroChaves++;
-      printf("\n chegou na insercao ordenada\n");
       int posOrd, fim;
       posOrd = -1;
       fim = ORDEM-1; //Verificar se eh inutil no futuro.
@@ -141,34 +140,19 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
         }
       }
 
-      printf("\n");
-    for(i = fim; i >= posOrd; i--){
+      for(i = fim; i >= posOrd; i--){
         if(i + 1 != ORDEM - 1){
             p.chaves[i+1] = p.chaves[i];
-            printf("i + 1 = %d", i + 1);
         }
-    }
-    printf("\n");
-    for(i = 0; i < ORDEM; i++){
-        printf("p.chaves[%d]=%d", i, p.chaves[i].id);
-    }
-    p.chaves[posOrd] = *chave;
+      }
+      p.chaves[posOrd] = *chave;
 
 
       for(i = fim; i >= posOrd; i--){
         p.filhos[i+1] = p.filhos[i];
       }
       p.filhos[posOrd + 1] = *direitoChavePromovida;
-
-       for(i = 0; i < ORDEM; i++){
-        printf("filho[%d]=%d   ",i,p.filhos[i]);
-       }
-       printf("\n");
-
-    for(i = 0; i < ORDEM -1; i++){
-        printf("chave%d = %d   ", i, p.chaves[i].id);
-    }
-      /* Fim do algoritmo de insercao em vetor ordenado. */
+      /* Fim do algoritmo de insercao em vetor ordenado e organizacao dos filhos. */
 
       fseek(arq, sizeof(CABECALHO_BTREE) + (p.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&p, sizeof(PAGINA), 1, arq);
@@ -176,25 +160,14 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
     }
 
     else { //Insercao de chave com particionamento.
-        printf("  \\SPLIT//  \n");
       split(arq, chave->id, chave->offset, &p, chavePromovida, direitoChavePromovida, &newP, contadorDePaginas, p.RRNDaPagina);
       fseek(arq, sizeof(CABECALHO_BTREE) + (p.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&p, sizeof(PAGINA), 1, arq);
       fseek(arq, sizeof(CABECALHO_BTREE) + (newP.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&newP, sizeof(PAGINA), 1, arq);
-      for(i = 0; i < ORDEM - 1; i++){
-        printf(" %d ", p.chaves[i].id);
-      }
-      printf("p.RRNdaPagina=%d", p.RRNDaPagina);
-      printf("\n");
-      for(i = 0; i < ORDEM - 1; i++){
-        printf(" %d ", newP.chaves[i].id);
-      }
-      printf("newP.RRNDaPagina=%d", newP.RRNDaPagina);
 
       *chave = *chavePromovida;
       *direitoChavePromovida = newP.RRNDaPagina;
-      printf("\nchavePromovida=%d   direitoChavePromovida=%d", chavePromovida->id, *direitoChavePromovida);
 
       return PROMOTION;
     }
@@ -305,23 +278,9 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
   newP->RRNDaPagina = *contadorDePaginas;
   (*contadorDePaginas)++;
 
-  printf("\n");
-  for(i = 0; i < ORDEM + 1; i++){
-    printf("pSplit.filhos[%d]=%d   ", i, pSplit.filhos[i]);
-  }
-  printf("\n");
-  for(i = 0; i < ORDEM; i++){
-    printf("p.filhos[%d]=%d   ",i, p->filhos[i]);
-  }
-  printf("\n");
-  for(i = 0; i < ORDEM; i++){
-    printf("newP.filhos[%d]=%d   ",i,newP->filhos[i]);
-  }
-
-    /* Aqui pego a chave do meio do vetor. Se ele for impar, tudo certo. Se ele for par,
+  /* Aqui pego a chave do meio do vetor. Se ele for impar, tudo certo. Se ele for par,
    * irei pegar a chave a direita, por isso o ORDEM/2 + 1 */
   *promo_key = pSplit.chaves[ORDEM/2];
-  printf("\npromo_key=%d\n", promo_key->id);
   /* Recebe o endereco da nova pagina que esta a direta */
   *promo_r_child = newP->RRNDaPagina;
 }

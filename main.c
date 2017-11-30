@@ -30,7 +30,8 @@ int main()
     printf("\nSelecione uma das opcoes abaixo:\n"
     "1. Criar indice.\n"
     "2. Inserir Musica.\n"
-    "3. Pesquisar Musica por ID.\n"
+    "3. Exibir ultimo registro do arquivo de dados\n"
+    //"3. Pesquisar Musica por ID.\n"
     //"4. Remover Musica por ID.\n"
     "4. Exibir Arquivo da B-Tree.\n"
     //"5. Mostrar Arvore-B.\n"
@@ -82,12 +83,10 @@ int main()
           CHAVE chavePromovida;
           chavePromovida.id = -1;
           chavePromovida.offset = -1;
-          printf("\nnao inseriu");
 
           // Insere o no raiz;
           inserirBT(index, 0, &chaveInserida, &chavePromovida, &invalido, &(cabecalhoTree.contadorDePaginas));
 
-          printf("\ninseriu primeiro");
           while(fread(&size, sizeof(size), 1, arq)) {
 
             // Pega o proximo registro para inserir na b-tree;
@@ -99,12 +98,9 @@ int main()
             //Coloca os valores em default.
             chavePromovida.id = -1;
             chavePromovida.offset = -1;
-            printf("\nInserindo ID %d  de ByteOffset  %d", chaveInserida.id, chaveInserida.offset);
-            printf("\ncontadorDePaginas = %d", cabecalhoTree.contadorDePaginas);
 
             int promo_r_child = -1;
             int root = cabecalhoTree.noRaiz;
-            printf("\nroot = %d\n", root);
             if(inserirBT(index, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
               PAGINA newRoot;
 
@@ -120,7 +116,6 @@ int main()
 
               newRoot.numeroChaves = 1;
               newRoot.chaves[0] = chavePromovida;
-              printf("\nchavePromovida=%d", chavePromovida.id);
 
               newRoot.filhos[0] = root;
               newRoot.filhos[1] = promo_r_child;
