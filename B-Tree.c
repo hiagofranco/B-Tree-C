@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "Registro.h"
 #include "B-Tree.h"
+#include "Log.h"
 
 void criaBT(FILE *arq) {
   /*Primeiramente criamos o cabecalho do arquivo e inserimos no arquivo de indice */
@@ -75,7 +77,7 @@ int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_enc
  * Inicializa passand a no raiz e valores invalidos (-1) para os parametros de recursao.
 */
 
-int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas) {
+int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas) {
   PAGINA p, newP;
   int i;
   int pos = 0;
@@ -107,7 +109,7 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
     }
 
     /*Chamada de recursao com o objetivo de se atingir os nos folha da arvore. */
-    int return_value = inserirBT(arq, p.filhos[pos], chave, chavePromovida, direitoChavePromovida, contadorDePaginas);
+    int return_value = inserirBT(arq, logTxt, p.filhos[pos], chave, chavePromovida, direitoChavePromovida, contadorDePaginas);
 
     if(return_value == NO_PROMOTION || return_value == ERROR)
       return return_value;
@@ -169,6 +171,8 @@ int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *d
       *chave = *chavePromovida;
       *direitoChavePromovida = newP.RRNDaPagina;
 
+      log_insercao(logTxt, NULL, 1, &p, NULL);
+      log_insercao(logTxt, chavePromovida, 2, NULL, NULL);
       return PROMOTION;
     }
   }
@@ -238,7 +242,6 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
     else{
         pSplit.filhos[posOrd + 1] = *promo_r_child;
     }
-
   }
 
   /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
@@ -286,12 +289,12 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
 }
 
 //funcao que adquire o RRN do no raiz
-int buscaRaiz(FILE *arq){
+/*int buscaRaiz(FILE *arq){
     CABECALHO_BTREE cabecalho;
     fseek(arq, 0, 0);
     fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
     return cabecalho.noRaiz;
-}
+}*/
 
 void ler_btree(FILE *arq){
     arq = fopen("arvore.idx", "rb");
@@ -327,4 +330,3 @@ void ler_criacao_btree(FILE *arq){
     printf(" raiz: %d   estaAtualizada: %d\n ", cabecalho.noRaiz, cabecalho.estaAtualizada);
     printf(" contador: %d  numeroChaves: %d  1filho: %d  isFolha: %d\n", pag.RRNDaPagina, pag.numeroChaves, pag.filhos[0], pag.isFolha);
 }*/
-

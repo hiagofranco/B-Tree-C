@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Log.h"
 #include "Registro.h"
+#include "B-Tree.h"
+#include "Log.h"
 
-void log_insercao(FILE *arq, CHAVE chave, FILE *dados, int codigo, pagina *p) {
+void log_insercao(FILE *arq, CHAVE *chave, int codigo, PAGINA *p, REGISTRO *reg) {
   arq = fopen("log_HMoreira.txt", "a");
   if(!arq) {
       printf("Erro ao abrir o arquivo de log! (log_HMoreira.txt)");
@@ -13,37 +14,19 @@ void log_insercao(FILE *arq, CHAVE chave, FILE *dados, int codigo, pagina *p) {
   else {
     switch (codigo) {
       case 0: // Execucao da insercao.
-        dados = fopen("dados.dad", "rb");
-        if(!dados) {
-          printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
-          exit(1);
-        }
-        fseek(dados, chave.offset, SEEK_SET);
-
-        char size, buffer[1000]; REGISTRO r;
-
-        fread(&size, sizeof(size), 1, dados);
-        fread(buffer, size, 1, dados);
-
-        int pos = 0;
-        sscanf(parser(buffer, &pos), "%d", &r.id);
-        strcpy(r.titulo, parser(buffer, &pos));
-        strcpy(r.genero, parser(buffer, &pos));
-
-        fprintf(arq, "Execucao de operacao de INSERCAO de %d, %s, %s.\n", chave.id, r.titulo, r.genero);
-        fclose(dados);
+        fprintf(arq, "Execucao de operacao  de INSERCAO de %d, %s, %s.\n", chave->id, reg->titulo, reg->genero);
         break;
       case 1: //Divisao de no.
-        fprintf(arq, "Divisao de no - pagina %d\n", *p.RRNDaPagina);
+        fprintf(arq, "Divisao de no - pagina %d\n", p->RRNDaPagina);
         break;
       case 2: //Chave promovida
-        fprintf(arq, "Chave %d promovida\n", chave.id);
+        fprintf(arq, "Chave %d promovida\n", chave->id);
         break;
       case 3: //Chave inserida
-        fprintf(arq, "Chave %d inserida com sucesso\n", chave.id);
+        fprintf(arq, "Chave %d inserida com sucesso\n", reg->id);
         break;
       case 4: //Chave duplicada
-        fprintf(arq, "Chave %d duplicada\n", chave.id);
+        fprintf(arq, "Chave %d duplicada\n", chave->id);
         break;
     }
     fclose(arq);
@@ -56,7 +39,7 @@ void log_indice(FILE *arq) {
         printf("Erro ao abrir o arquivo de log! (log_HMoreira.txt)");
         exit(1);
     }
-    fprintf(arq, "Execucao da criacao do arquivo de indice <arvore.idx> com base no arquivo de dados <dados.dad>\n");
+    fprintf(arq, "Execucao da criacao do arquivo de indice arvore.idx com base no arquivo de dados dados.dad\n");
     fclose(arq);
 }
 

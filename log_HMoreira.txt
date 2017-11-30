@@ -1,0 +1,9 @@
+Execucao da criacao do arquivo de indice arvore.idx com base no arquivo de dados dados.dad
+Execucao de operacao  de INSERCAO de 10, adsa, asdasd.
+Chave 10 inserida com sucesso
+Chave 30 inserida com sucesso
+Chave 50 inserida com sucesso
+Chave 70 inserida com sucesso
+Divisao de no - pagina 0
+Chave 40 promovida
+Chave 40 inserida com sucesso
