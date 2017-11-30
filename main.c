@@ -94,16 +94,16 @@ int main()
             fread(buffer, size, 1, arq);
             pos = 0;
             sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
-            printf("\nInserindo ID %d  de ByteOffset  %d", chaveInserida.id, chaveInserida.offset);
 
             //Coloca os valores em default.
             chavePromovida.id = -1;
             chavePromovida.offset = -1;
+            printf("\nInserindo ID %d  de ByteOffset  %d", chaveInserida.id, chaveInserida.offset);
             printf("\ncontadorDePaginas = %d", cabecalhoTree.contadorDePaginas);
 
             int promo_r_child = -1;
             int root = cabecalhoTree.noRaiz;
-            printf("\nroot = %d", root);
+            printf("\nroot = %d\n", root);
             if(inserirBT(index, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
               PAGINA newRoot;
 

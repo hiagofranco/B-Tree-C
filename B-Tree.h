@@ -25,7 +25,7 @@ typedef struct pagina {
   int RRNDaPagina; // Guarda o numero da pagina na qual estamos.
   int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM-1]; // Vetor de chaves do no.
-  int filhos[ORDEM]; // Armazena os enderecos referentes aos filhos.
+  int filhos[ORDEM + 1]; // Armazena os enderecos referentes aos filhos.
  // int isFolha; // Bool que identifica um no folha.
 } PAGINA;
 
@@ -41,7 +41,7 @@ typedef struct paginaSplit {
 void criaBT();
 int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas);
 int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada);
-void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas);
+void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas, int RRNPaginaSplitada);
 void ler_criacao_btree(FILE *index);
 int buscaRaiz(FILE *arq);
 void ler_btree(FILE *arq);
