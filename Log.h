@@ -1,8 +1,10 @@
-#include<stdio.h>
-#include<stdlib.h>
+#ifndef LOG_H_
+#define LOG_H_
 
-void log_insercao(FILE *arq,int id,char *titulo,char *genero);
-void log_busca(FILE *arq,int id,char *titulo,char *genero,int offset);
-void log_remocao(FILE *arq,int id);
-void log_mostrarArvore(FILE *arq,int id);
+void log_insercao(FILE *arq, CHAVE *chave, int codigo, PAGINA *p, REGISTRO *reg);
 void log_indice(FILE *arq);
+void log_busca(FILE *arq, int id);
+void log_sucessoBusca(FILE *arq, REGISTRO r, long int offset);
+void log_falhaBusca(FILE *arq, int id);
+
+#endif // LOG_H_

@@ -1,14 +1,25 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include "B-Tree.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "Registro.h"
+#include "B-Tree.h"
+#include "Log.h"
 
 #define TRUE 1
 #define FALSE 0
 
-int main()
-{
+/* Funcao referente ao fflush do Windows. Foi usada aqui para que o programa
+ * rode tanto no Linux quanto no Windows. Essa funcao foi retirada desta pagina:
+ * https://stackoverflow.com/questions/17318886/fflush-is-not-working-in-linux */
+void clean_stdin() {
+    int c;
+    do {
+        c = getchar();
+    } while (c != '\n' && c != EOF);
+}
+
+/* Inicio da main */
+int main() {
   printf("Seja bem vindo!\n");
 
   //Variaveris de controle do menu.
@@ -18,11 +29,28 @@ int main()
   //Variavel referente a manipulacao dos arquivos.
   FILE *arq; // Arquivo de dados
   FILE *index; //Arquivo da b-Tree
+  FILE *logTxt; // Arquivo de log, saida do programa.
+  logTxt = fopen("log_HMoreira.txt", "w");
+  if(!logTxt) {
+    printf("Erro ao abrir o arquivo de log! (log_HMoreira.txt)\n");
+    exit(1);
+  }
 
   //Variaveis utilizadas para leitura de dados.
   REGISTRO r;
-  //CHAVE chave;
-  //CABECALHO_DADOS cabecalhoDados;
+  CHAVE chaveInserida; //Variavel de chave a ser inserida
+  CHAVE chavePromovida;
+  CABECALHO_BTREE cabecalhoTree;
+  CABECALHO_DADOS cabecalhoDados;
+  PAGINA newRoot;
+  int root, promo_r_child, return_log; //variaveis necessarias para a criacao da B-Tree
+  int i;  //Variavel auxiliar para loops
+  //Variaveis para a leitura de novos registros
+  char buffer[1000], size;
+  int pos;
+  //Variaveis para a funcionalidade de busca
+  int idProcurado;
+  long int offsetProcurado;
 
   //Loop principal do programa.
   while(!end) {
@@ -31,18 +59,18 @@ int main()
     "1. Criar indice.\n"
     "2. Inserir Musica.\n"
     "3. Pesquisar Musica por ID.\n"
-    //"4. Remover Musica por ID.\n"
     "4. Exibir Arquivo da B-Tree.\n"
-    //"5. Mostrar Arvore-B.\n"
     "5. Exibir Arquivo de dados.\n"
     "6. Fechar o programa.\n"
     "> ");
     scanf("%d", &option);
+    clean_stdin();
 
     switch(option)
     {
       /*Funcionalidade 1 - Cria um indice a partir de um arquivo de dados*/
       case 1:
+
         arq = fopen("dados.dad", "rb");
         if(!arq)
         {
@@ -53,40 +81,51 @@ int main()
         /* Inicio do algoritmo de driver */
           criaBT(index); //Cria a raiz e o cabecalho
           index = fopen("arvore.idx", "rb+");
-          // Pula o cabecalho e vai para o primeiro dado.
+          if(!index) {
+            printf("Erro ao abrir o arquivo de index na Funcionalidade 1! (arvore.idx)\n");
+            break;
+          }
+
+          // Grava que a funcionalidade 1 esta sendo executada no arquivo de log.
+          log_indice(logTxt);
+
+          // Pula o cabecalho do arquivo de dados e vai para o primeiro dado.
           fseek(arq, sizeof(CABECALHO_DADOS), SEEK_SET);
 
           //Tras o cabecalho da b-tree para a memoria.
-          CABECALHO_BTREE cabecalhoTree;
           fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
 
           // Le o tamanho do registro.
-          char size;
           fread(&size, sizeof(size), 1, arq);
-
-          CHAVE chaveInserida; //Varaivel de chave a ser inserida
 
           /* Pego o endereco e subtraio o valor da varivel de tamanho, ja que
           esta valor nao entra do calculo do registro */
           chaveInserida.offset = ftell(arq) - sizeof(size);
 
           // Criar um buffer para armaezenar o registro.
-          char buffer[1000];
           fread(buffer, size, 1, arq);
 
-          // Divide o registro ate o divisor de campos, e aramezena o id.
-          int pos = 0;
+          // Divide o registro ate o divisor de campos, e aramezena o id, titulo e genero.
+          pos = 0;
           sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
+          r.id = chaveInserida.id; // Usada para guardar a chave para que possamos gravra no log.
+          strcpy(r.titulo, parser(buffer, &pos));
+          strcpy(r.genero, parser(buffer, &pos));
 
-          CHAVE chavePromovida;
+          // Cria uma chave para ser utilizada como parametro de retorno da recursao.
           chavePromovida.id = -1;
           chavePromovida.offset = -1;
-          printf("\nnao inseriu");
 
           // Insere o no raiz;
-          inserirBT(index, 0, &chaveInserida, &chavePromovida, &invalido, &(cabecalhoTree.contadorDePaginas));
+          log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
+          return_log =  inserirBT(index, logTxt, 0, &chaveInserida, &chavePromovida, &invalido, &(cabecalhoTree.contadorDePaginas));
+          if(return_log == ERROR) {
+                log_insercao(logTxt, &chaveInserida, 4, NULL, NULL);
+          }
 
-          printf("\ninseriu primeiro");
+          else {
+                log_insercao(logTxt, NULL, 3, NULL, &r);
+          }
           while(fread(&size, sizeof(size), 1, arq)) {
 
             // Pega o proximo registro para inserir na b-tree;
@@ -94,23 +133,28 @@ int main()
             fread(buffer, size, 1, arq);
             pos = 0;
             sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
-            printf("\nInserindo ID %d  de ByteOffset  %d", chaveInserida.id, chaveInserida.offset);
+            r.id = chaveInserida.id; // Usada para guardar a chave para que possamos gravra no log.
+            strcpy(r.titulo, parser(buffer, &pos));
+            strcpy(r.genero, parser(buffer, &pos));
 
             //Coloca os valores em default.
             chavePromovida.id = -1;
             chavePromovida.offset = -1;
-            printf("\ncontadorDePaginas = %d", cabecalhoTree.contadorDePaginas);
 
-            int promo_r_child = -1;
-            int root = cabecalhoTree.noRaiz;
-            printf("\nroot = %d", root);
-            if(inserirBT(index, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas)) == PROMOTION) {
-              PAGINA newRoot;
+            promo_r_child = -1;
+            root = cabecalhoTree.noRaiz;
+            log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
+
+            return_log = inserirBT(index, logTxt, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas));
+
+            if(return_log == ERROR) log_insercao(logTxt, &chaveInserida, 4, NULL, NULL);
+            else log_insercao(logTxt, NULL, 3, NULL, &r);
+
+            if(return_log == PROMOTION) {
 
               cabecalhoTree.contadorDePaginas++;
               newRoot.RRNDaPagina = cabecalhoTree.contadorDePaginas - 1;
 
-              int i;
               for(i = 0; i < ORDEM-1; i++) {
                 newRoot.chaves[i].id = -1;
                 newRoot.chaves[i].offset = -1;
@@ -119,7 +163,6 @@ int main()
 
               newRoot.numeroChaves = 1;
               newRoot.chaves[0] = chavePromovida;
-              printf("\nchavePromovida=%d", chavePromovida.id);
 
               newRoot.filhos[0] = root;
               newRoot.filhos[1] = promo_r_child;
@@ -132,46 +175,232 @@ int main()
           fseek(index, 0, 0);
           fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
           fclose(index);
+          fclose(arq);
 
         break;
 
-      /*Funcionalidade 2 - Insercao	de	novas	m�sicas	no	arquivo	de	dados	e	no	�ndice*/
+      /*Funcionalidade 2 - Insercao	de	novas	musicas	no	arquivo	de	dados	e	no	indice*/
       case 2:
 
-        arq = fopen("dados.dad", "ab+"); //Abre o arquivo no modo append, para ser que os
-        //novos dados sejam escritos no final do arquivo.
-        if(!arq)
-        {
+        arq = fopen("dados.dad", "ab+"); /*Abre o arquivo no modo append, para ser que os novos dados
+                                          sejam escritos no final do arquivo. */
+
+        if(!arq) {
             printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
             exit(1);
         }
 
-        printf("\nDigite os dados a serem inseridos na seguinte ordem e separados por \"\\n\":\n"
-        "Numero inteiro com ID da musica.\n"
-        "Titulo da musica.\n"
-        "Genero da musica.\n"
-        "> ");
+        printf("\nDigite os dados a serem inseridos:\n");
         inserir_registro(&r);
         inserir_arquivo(arq,r);
 
-        fclose(arq);
+        /* Algoritmo driver para a insercao de apenas uma chave */
+        index = fopen("arvore.idx", "rb+");
+
+        //Nesse caso seguinte temos o arquivo de dados, mas nao o da B-Tree, entao temos que cria-la integralmente
+        //Essa condicao sera verdadeira na primeira insercao e quando o arquivo de indice for deletado, mas o de dados for conservado
+        if(!index) {
+          printf("Arvore ainda nao criada! Criando uma B-Tree...\n");
+
+        /* Inicio do algoritmo de driver */
+          criaBT(index); //Cria a raiz e o cabecalho
+          index = fopen("arvore.idx", "rb+");
+          if(!index) {
+            printf("Erro ao abrir o arquivo de index na Funcionalidade 2! (arvore.idx)\n");
+            break;
+          }
+
+          // Grava que a funcionalidade 1 esta sendo executada no arquivo de log.
+          log_indice(logTxt);
+          printf("\nftell = %ld",ftell(logTxt));
+
+          // Pula o cabecalho do arquivo de dados e vai para o primeiro dado.
+          fseek(arq, sizeof(CABECALHO_DADOS), SEEK_SET);
+
+          //Tras o cabecalho da b-tree para a memoria.
+          fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+
+          // Le o tamanho do registro.
+          fread(&size, sizeof(size), 1, arq);
+
+          /* Pego o endereco e subtraio o valor da varivel de tamanho, ja que
+          esta valor nao entra do calculo do registro */
+          chaveInserida.offset = ftell(arq) - sizeof(size);
+
+          // Criar um buffer para armaezenar o registro.
+          fread(buffer, size, 1, arq);
+
+          // Divide o registro ate o divisor de campos, e aramezena o id, titulo e genero.
+          pos = 0;
+          sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
+          r.id = chaveInserida.id; // Usada para guardar a chave para que possamos gravra no log.
+          strcpy(r.titulo, parser(buffer, &pos));
+          strcpy(r.genero, parser(buffer, &pos));
+
+          // Cria uma chave para ser utilizada como parametro de retorno da recursao.
+          chavePromovida.id = -1;
+          chavePromovida.offset = -1;
+
+          // Insere o no raiz;
+          log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
+          return_log =  inserirBT(index, logTxt, 0, &chaveInserida, &chavePromovida, &invalido, &(cabecalhoTree.contadorDePaginas));
+          if(return_log == ERROR) {
+                log_insercao(logTxt, &chaveInserida, 4, NULL, NULL);
+          }
+
+          else {
+                log_insercao(logTxt, NULL, 3, NULL, &r);
+          }
+          while(fread(&size, sizeof(size), 1, arq)) {
+
+            // Pega o proximo registro para inserir na b-tree;
+            chaveInserida.offset = (int)ftell(arq) - sizeof(size);
+            fread(buffer, size, 1, arq);
+            pos = 0;
+            sscanf(parser(buffer, &pos), "%d", &chaveInserida.id);
+            r.id = chaveInserida.id; // Usada para guardar a chave para que possamos gravra no log.
+            strcpy(r.titulo, parser(buffer, &pos));
+            strcpy(r.genero, parser(buffer, &pos));
+
+            //Coloca os valores em default.
+            chavePromovida.id = -1;
+            chavePromovida.offset = -1;
+
+            promo_r_child = -1;
+            root = cabecalhoTree.noRaiz;
+            log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
+
+            return_log = inserirBT(index, logTxt, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas));
+
+            if(return_log == ERROR) log_insercao(logTxt, &chaveInserida, 4, NULL, NULL);
+            else log_insercao(logTxt, NULL, 3, NULL, &r);
+
+            if(return_log == PROMOTION) {
+
+              cabecalhoTree.contadorDePaginas++;
+              newRoot.RRNDaPagina = cabecalhoTree.contadorDePaginas - 1;
+
+              for(i = 0; i < ORDEM-1; i++) {
+                newRoot.chaves[i].id = -1;
+                newRoot.chaves[i].offset = -1;
+              }
+              for(i = 0; i < ORDEM; i++) newRoot.filhos[i] = -1;
+
+              newRoot.numeroChaves = 1;
+              newRoot.chaves[0] = chavePromovida;
+
+              newRoot.filhos[0] = root;
+              newRoot.filhos[1] = promo_r_child;
+
+              cabecalhoTree.noRaiz = newRoot.RRNDaPagina;
+              fseek(index, sizeof(CABECALHO_BTREE) + (newRoot.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
+              fwrite(&newRoot, sizeof(PAGINA), 1, index);
+            }
+          }
+          fseek(index, 0, 0);
+          fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+          fclose(index);
+          fclose(arq);
 
         break;
+        }
+
+        else {
+            // Vai para o comeco do arquivo de dados.
+            fseek(arq, 0, SEEK_SET);
+
+            // Busca informacao do ultimo registro do cabecalho.
+            fread(&cabecalhoDados, sizeof(CABECALHO_DADOS), 1, arq);
+            fseek(arq, cabecalhoDados.byteoffset_ultimo, SEEK_SET);
+
+            fread(&size, sizeof(size), 1, arq);
+            fread(buffer, size, 1, arq);
+            pos = 0;
+            sscanf(parser(buffer, &pos), "%d", &r.id);
+            chaveInserida.id = r.id;
+            chaveInserida.offset = cabecalhoDados.byteoffset_ultimo;
+            strcpy(r.titulo, parser(buffer, &pos));
+            strcpy(r.genero, parser(buffer, &pos));
+
+            printf("\nID: %d   Titulo: %s   Genero: %s", r.id, r.titulo, r.genero);
+
+            //Traz o cabecalho da b-tree para a memoria.
+            fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+
+            //Coloca os valores em default.
+            chavePromovida.id = -1;
+            chavePromovida.offset = -1;
+
+            promo_r_child = -1;
+            root = cabecalhoTree.noRaiz;
+            log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
+
+
+            return_log = inserirBT(index, logTxt, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas));
+
+            if(return_log == ERROR) log_insercao(logTxt, &chaveInserida, 4, NULL, NULL);
+            else log_insercao(logTxt, NULL, 3, NULL, &r);
+
+            if(return_log == PROMOTION) {
+
+                PAGINA newRoot;
+
+                cabecalhoTree.contadorDePaginas++;
+                newRoot.RRNDaPagina = cabecalhoTree.contadorDePaginas - 1;
+
+                for(i = 0; i < ORDEM-1; i++) {
+                    newRoot.chaves[i].id = -1;
+                    newRoot.chaves[i].offset = -1;
+                }
+                for(i = 0; i < ORDEM; i++) newRoot.filhos[i] = -1;
+
+                newRoot.numeroChaves = 1;
+                newRoot.chaves[0] = chavePromovida;
+
+                newRoot.filhos[0] = root;
+                newRoot.filhos[1] = promo_r_child;
+
+                cabecalhoTree.noRaiz = newRoot.RRNDaPagina;
+                fseek(index, sizeof(CABECALHO_BTREE) + (newRoot.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
+                fwrite(&newRoot, sizeof(PAGINA), 1, index);
+            }
+            fseek(index, 0, 0);
+            fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+
+            fclose(arq);
+            fclose(index);
+
+        break;
+        }
+
       /* Funcionalidade 3 - Pesquisa (busca)	por	Id	da	m�sica */
       case 3:
 
-        //TESTE PARA LER O ULTIMO REGISTRO
-        arq = fopen("dados.dad","rb+");
-        if(!arq)
-        {
-            printf("Erro ao abrir o arquivo de dados! (dados.dad)\n");
+        index = fopen("arvore.idx", "rb+");
+        if(!index){
+            printf("Nao foi possivel realizar a busca (arquivo de indice nao existe ou ocorreu um erro na sua abertura)\n");
             exit(1);
         }
+        //Traz o cabecalho da b-tree para a memoria.
+        fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+        root = cabecalhoTree.noRaiz;
 
-       ler_ultimo_registro(arq, r);
+        scanf("%d", &idProcurado);
+        clean_stdin();
+
+        log_busca(logTxt, idProcurado);
+
+        if(buscaBT(index, root, idProcurado, &offsetProcurado) == TRUE){
+            lerRegistro(arq, &r, offsetProcurado);
+            log_sucessoBusca(logTxt, r, offsetProcurado);
+        }
+        else{
+            log_falhaBusca(logTxt, idProcurado);
+        }
+
 
         break;
-      /* Funcionalidade 4 - Remo��o	de m�sica	a	partir	do	Id */
+      /* Funcionalidade 4 - Remocao	de musica	a	partir	do	Id */
       case 4:
           ler_btree(index);
         break;
@@ -179,6 +408,7 @@ int main()
       case 5:
           arq = fopen("dados.dad", "rb+");
           imprimirArquivoDados(arq);
+          fclose(arq);
         break;
       /* Sair do programa */
       case 6:

@@ -18,31 +18,31 @@ typedef struct cabecalho {
 
 typedef struct chave {
   int id;
-  int offset;
+  long int offset;
 } CHAVE;
 
 typedef struct pagina {
   int RRNDaPagina; // Guarda o numero da pagina na qual estamos.
   int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM-1]; // Vetor de chaves do no.
-  int filhos[ORDEM]; // Armazena os enderecos referentes aos filhos.
- // int isFolha; // Bool que identifica um no folha.
+  int filhos[ORDEM + 1]; // Armazena os enderecos referentes aos filhos.
 } PAGINA;
 
 /* Esta pagina sera somente utilizada no caso de um split, no qual precisamos
  * temporariamente de um noh que comporte uma chave a mais */
 typedef struct paginaSplit {
-  //int contadorPagina; // Guarda o numero da pagina na qual estamos.
-  //int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM]; // Vetor de chaves do no.
   int filhos[ORDEM+1]; // Armazena os enderecos referentes aos filhos.
 } PAGINA_SPLIT;
 
 void criaBT();
-int inserirBT(FILE *arq, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas);
-int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada);
-void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas);
+int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas);
+int buscaBT(FILE *arq, int offset, int id, long int *offset_encontrado);
+void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas, int RRNPaginaSplitada);
 void ler_criacao_btree(FILE *index);
 int buscaRaiz(FILE *arq);
 void ler_btree(FILE *arq);
+void desatualizarBTree(FILE *index, CABECALHO_BTREE cabecalho);
+void atualizarBTree(FILE *index, CABECALHO_BTREE cabecalho);
+
 #endif //BTREE_H_
