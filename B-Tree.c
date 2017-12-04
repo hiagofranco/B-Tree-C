@@ -382,20 +382,33 @@ void exibirBT(FILE *index, FILE *logTxt, int root){
     FILA F;
     PAGINA p;
     criaFila(&F);
-    push(&F, root);
     int RRNAtual, i;
     int filhosSuperior, filhosInferior;
-    //int controleNivel = 0;
     int nivel = 0;
 
     fseek(index, sizeof(CABECALHO_BTREE) + root*sizeof(PAGINA), SEEK_SET);
     fread(&p, sizeof(PAGINA), 1, index);
-    filhosSuperior = p.numeroChaves + 1;
+    filhosSuperior = 0;
+    printf("\bp.numeroChaves = %d", p.numeroChaves);
     filhosInferior = 0;
+    for(i = 0; i < ORDEM; i++){
+        if(p.filhos[i] != -1){
+            push(&F, p.filhos[i]);
+                filhosInferior++;
+        }
+    }
+    log_exibirBTree(logTxt, p, nivel);
+    nivel++;
+    filhosSuperior = filhosInferior;
+    filhosInferior = 0;
+    printf("\nfilhoSuperior = %d", filhosSuperior);
+    printf("   RRNAtual = %d ", p.RRNDaPagina);
 
     while(!estaVazia(&F)){
 
+        printf("\nfilhoSuperior = %d", filhosSuperior);
         pop(&F, &RRNAtual);
+        printf("   RRNAtual = %d ", RRNAtual);
         fseek(index, sizeof(CABECALHO_BTREE) + RRNAtual*sizeof(PAGINA), SEEK_SET);
         fread(&p, sizeof(PAGINA), 1, index);
         for(i = 0; i < ORDEM; i++){
@@ -405,17 +418,13 @@ void exibirBT(FILE *index, FILE *logTxt, int root){
            }
         }
 
+        log_exibirBTree(logTxt, p, nivel);
         filhosSuperior--;
 
-        log_exibirBTree(logTxt, p, nivel);
-        if(nivel == 0){
-            nivel++;
-        }
-
         if(filhosSuperior == 0){
-            filhosSuperior = filhosInferior;
             nivel++;
+            filhosSuperior = filhosInferior;
+            filhosInferior = 0;
         }
-
     }
 }
