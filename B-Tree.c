@@ -249,6 +249,7 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
   }
 
   //Aqui verificamos se a ORDEM eh par ou impar para fazermos o split correto
+  //Abaixo esta o split para arvores de ordem impar (resto da divisao por 2 eh diferente de zero)
   if(ORDEM % 2 != 0){
     /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
     for(i = 0; i < ORDEM/2; i++)
@@ -290,6 +291,8 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
     *promo_key = pSplit.chaves[ORDEM/2];
 
   }
+
+  //Abaixo esta o split para arvores de ordem par (resto da divisao por 2 eh zero)
   else{
     /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
     for(i = 0; i < ORDEM/2 - 1; i++)
@@ -383,32 +386,46 @@ void exibirBT(FILE *index, FILE *logTxt, int root){
     PAGINA p;
     criaFila(&F);
     int RRNAtual, i;
+
+    //filhosSuperior eh a quantidade de filhos que todo o nivel acima do atual tem (ou seja, a quantidade de paginas em um nivel)
+    //filhosInferior representa o total de filhos que o nivel atual tem
+    //usa-se essas variaveis para controlar o nivel em que estamos realizando a leitura
     int filhosSuperior, filhosInferior;
+
+    //primeiro nivel eh o 0
     int nivel = 0;
 
+    //num primeiro momento pegamos os filhos da raiz e passamos para uma fila para percorrermos a arvore em largura
     fseek(index, sizeof(CABECALHO_BTREE) + root*sizeof(PAGINA), SEEK_SET);
     fread(&p, sizeof(PAGINA), 1, index);
+    //A raiz nao eh filha de ninguem
     filhosSuperior = 0;
-    printf("\bp.numeroChaves = %d", p.numeroChaves);
+    //Valor default para essa variavel
     filhosInferior = 0;
+
+    //Aqui pegamos todos os filhos dessa pagina e aumentamos a quantidade de filhos do nivel atual
     for(i = 0; i < ORDEM; i++){
         if(p.filhos[i] != -1){
             push(&F, p.filhos[i]);
                 filhosInferior++;
         }
     }
+    //funcao que escreve no arquivo de log a pagina atual
     log_exibirBTree(logTxt, p, nivel);
+
+    //depois de analisar a raiz aumentamos o nivel (descemos na arvore)
     nivel++;
+
+    //como estamos num nivel abaixo agora, o nivel atual, inicialmente nao temos filhos e a quantidade de paginas no nivel atual
+    //eh igual a filhosInferior  do nivel acima
     filhosSuperior = filhosInferior;
     filhosInferior = 0;
-    printf("\nfilhoSuperior = %d", filhosSuperior);
-    printf("   RRNAtual = %d ", p.RRNDaPagina);
 
+    //enquanto a fila com os filhos das paginas nao estiver vazia, analisamos as paginas restantes com busca em largura
     while(!estaVazia(&F)){
 
-        printf("\nfilhoSuperior = %d", filhosSuperior);
+        //aqui retiramos um dos filhos colocados na fila e analisamos a pagina, realizando um procedimento semelhante ao feito na raiz
         pop(&F, &RRNAtual);
-        printf("   RRNAtual = %d ", RRNAtual);
         fseek(index, sizeof(CABECALHO_BTREE) + RRNAtual*sizeof(PAGINA), SEEK_SET);
         fread(&p, sizeof(PAGINA), 1, index);
         for(i = 0; i < ORDEM; i++){
@@ -419,8 +436,12 @@ void exibirBT(FILE *index, FILE *logTxt, int root){
         }
 
         log_exibirBTree(logTxt, p, nivel);
+
+        //deve-se decrementar filhosSuperior pois terminamos de analisar uma pagina do nivel atual
         filhosSuperior--;
 
+        //se filhosSuperior for zero, significa que acabamos de analisar as paginas de um nivel,
+        //agora devemos descer um nivel na arvore
         if(filhosSuperior == 0){
             nivel++;
             filhosSuperior = filhosInferior;

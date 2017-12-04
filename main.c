@@ -62,7 +62,7 @@ int main() {
     "4. Exibir Arquivo da B-Tree.\n"
     "5. Exibir Arquivo de dados.\n"
     "6. Fechar o programa.\n"
-    "7. Exibir B-Tree.\n"
+    "7. Mostrar Arvore-B.\n"
     "> ");
     scanf("%d", &option);
     clean_stdin();
@@ -75,7 +75,7 @@ int main() {
         arq = fopen("dados.dad", "rb");
         if(!arq)
         {
-            printf("Erro ao abrir o arquivo de dados na Funcionalidade 1! (dados.dad)\n");
+            printf("Erro ao abrir o arquivo de dados (dados.dad) na Funcionalidade 1! \nTalvez o arquivo de dados ainda nao exista, insira algumas musicas com a Funcionalidade 2 e tente novamente\n");
             break;
         }
 
@@ -83,7 +83,7 @@ int main() {
           criaBT(index); //Cria a raiz e o cabecalho
           index = fopen("arvore.idx", "rb+");
           if(!index) {
-            printf("Erro ao abrir o arquivo de index na Funcionalidade 1! (arvore.idx)\n");
+            printf("Erro ao abrir o arquivo de indice (arvore.idx) na Funcionalidade 1! \n");
             break;
           }
 
@@ -218,7 +218,7 @@ int main() {
           criaBT(index); //Cria a raiz e o cabecalho
           index = fopen("arvore.idx", "rb+");
           if(!index) {
-            printf("Erro ao abrir o arquivo de index na Funcionalidade 2! (arvore.idx)\n");
+            printf("Erro ao abrir o arquivo de indice na Funcionalidade 2! (arvore.idx)\n");
             break;
           }
 
@@ -415,7 +415,7 @@ int main() {
                 criaBT(index); //Cria a raiz e o cabecalho
                 index = fopen("arvore.idx", "rb+");
                 if(!index) {
-                    printf("Erro ao abrir o arquivo de index na Funcionalidade 2! (arvore.idx)\n");
+                    printf("Erro ao abrir o arquivo de indice na Funcionalidade 2! (arvore.idx)\n");
                     break;
                 }
 
@@ -575,14 +575,17 @@ int main() {
 
         index = fopen("arvore.idx", "rb+");
         if(!index) {
-            printf("Erro ao abrir o arquivo de index na Funcionalidade 7! (arvore.idx)\n");
+            printf("Erro ao abrir o arquivo de index na Funcionalidade <Mostrar Arvore-B>! (arvore.idx)\nSe a arvore ainda nao existir, insira algumas musicas com a Funcionalidade 2\n");
             break;
         }
         log_funcaoExibirCabecalho(logTxt);
+
         //Traz o cabecalho da b-tree para a memoria.
         fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
         root = cabecalhoTree.noRaiz;
         exibirBT(index, logTxt, root);
+
+        fclose(index);
 
         break;
 
