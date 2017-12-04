@@ -3,7 +3,7 @@
 #ifndef BTREE_H_
 #define BTREE_H_
 
-#define ORDEM 5
+#define ORDEM 6
 #define TRUE 1
 #define FALSE 0
 #define PROMOTION 2
@@ -44,5 +44,6 @@ int buscaRaiz(FILE *arq);
 void ler_btree(FILE *arq);
 void desatualizarBTree(FILE *index, CABECALHO_BTREE cabecalho);
 void atualizarBTree(FILE *index, CABECALHO_BTREE cabecalho);
+void exibirBT(FILE *index, FILE *logTxt, int root);
 
 #endif //BTREE_H_

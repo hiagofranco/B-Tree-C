@@ -62,6 +62,7 @@ int main() {
     "4. Exibir Arquivo da B-Tree.\n"
     "5. Exibir Arquivo de dados.\n"
     "6. Fechar o programa.\n"
+    "7. Exibir B-Tree.\n"
     "> ");
     scanf("%d", &option);
     clean_stdin();
@@ -427,7 +428,7 @@ int main() {
                 // Pula o cabecalho do arquivo de dados e vai para o primeiro dado.
                 fseek(arq, sizeof(CABECALHO_DADOS), SEEK_SET);
 
-                //Tras o cabecalho da b-tree para a memoria.
+                //Traz o cabecalho da b-tree para a memoria.
                 fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
 
                 // Le o tamanho do registro.
@@ -576,6 +577,22 @@ int main() {
         printf("\nTchau! =)\n");
         end = TRUE;
         break;
+
+      case 7:
+
+        index = fopen("arvore.idx", "rb+");
+        if(!index) {
+            printf("Erro ao abrir o arquivo de index na Funcionalidade 7! (arvore.idx)\n");
+            break;
+        }
+        log_funcaoExibirCabecalho(logTxt);
+        //Traz o cabecalho da b-tree para a memoria.
+        fread(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
+        root = cabecalhoTree.noRaiz;
+        exibirBT(index, logTxt, root);
+
+        break;
+
       /* Entrada default */
       default:
         printf("\nComando invalido! Tente novamente.\n");

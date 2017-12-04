@@ -73,3 +73,28 @@ void log_falhaBusca(FILE *arq, int id){
     fclose(arq);
 }
 
+void log_funcaoExibirCabecalho(FILE *arq) {
+    arq = fopen("log_HMoreira.txt", "a");
+    if(!arq) {
+        printf("Erro ao abrir o arquivo de log! (log_HMoreira.txt)");
+        exit(1);
+    }
+    fprintf(arq, "Execucao de operacao para mostrar a arvore-B gerada:\r\n");
+    fclose(arq);
+}
+
+void log_exibirBTree(FILE *log, PAGINA p, int nivel){
+    log = fopen("log_HMoreira.txt", "a");
+    int i;
+    if(!log) {
+        printf("Erro ao abrir o arquivo de log! (log_HMoreira.txt)");
+        exit(1);
+    }
+    fprintf(log, "%d  %d  ", nivel, p.numeroChaves);
+    for(i = 0; i < p.numeroChaves; i++){
+        fprintf(log, "<%d/%ld>    ", p.chaves[i].id, p.chaves[i].offset);
+    }
+    fprintf(log, "\r\n");
+    fclose(log);
+}
+

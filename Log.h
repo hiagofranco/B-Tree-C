@@ -6,5 +6,7 @@ void log_indice(FILE *arq);
 void log_busca(FILE *arq, int id);
 void log_sucessoBusca(FILE *arq, REGISTRO r, long int offset);
 void log_falhaBusca(FILE *arq, int id);
+void log_funcaoExibirCabecalho(FILE *arq);
+void log_exibirBTree(FILE *log, PAGINA p, int nivel);
 
 #endif // LOG_H_

@@ -125,12 +125,8 @@ void inserir_registro(REGISTRO *r)
         }
         if(controle==1)
         {
-            printf("Ocorreu um erro,caracteres invalidos inseridos\n");
-            printf("\n Por favor, digite os dados a serem inseridos na seguinte ordem e separados por \"\\n\":\n"
-            "Numero inteiro com ID da musica.\n"
-            "Titulo da musica.\n"
-            "Genero da musica.\n"
-            "> ");
+            printf("Ocorreu um erro, caracteres invalidos inseridos!\n");
+            printf("\nPor favor, nao insira caracteres especiais, como cedilha ou acento\nPara o ID da musica, insira somente numeros positivos maiores que zero\n");
         }
     } while(controle==1);
 }

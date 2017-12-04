@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "Fila.h"
 #include "B-Tree.h"
 #include "Registro.h"
 #include "Log.h"
@@ -19,8 +20,6 @@ void criaBT(FILE *arq) {
     raiz.chaves[i].id = -1;
     raiz.chaves[i].offset = -1;
   }
-
- // raiz.isFolha = TRUE;
 
   CABECALHO_BTREE cabecalho;
   cabecalho.noRaiz = 0;
@@ -249,7 +248,8 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
     }
   }
 
-  /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
+  if(ORDEM % 2 != 0){
+ /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
   for(i = 0; i < ORDEM/2; i++)
     p->chaves[i] = pSplit.chaves[i];
 
@@ -286,20 +286,54 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
   newP->RRNDaPagina = *contadorDePaginas;
   (*contadorDePaginas)++;
 
-  /* Aqui pego a chave do meio do vetor. Se ele for impar, tudo certo. Se ele for par,
-   * irei pegar a chave a direita, por isso o ORDEM/2 + 1 */
   *promo_key = pSplit.chaves[ORDEM/2];
+
+  }
+  else{
+   /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
+  for(i = 0; i < ORDEM/2 - 1; i++)
+    p->chaves[i] = pSplit.chaves[i];
+
+  for(i = ORDEM/2 - 1; i < ORDEM-1; i++) {
+    p->chaves[i].id = -1;
+    p->chaves[i].offset = -1;
+  }
+
+  for(i = 0; i < (ORDEM)/2; i++)
+    p->filhos[i] = pSplit.filhos[i];
+
+  for(i = (ORDEM)/2; i < ORDEM; i++)
+    p->filhos[i] = -1;
+
+  /* Copia as chaves e os filhos de Psplit para newP a partir da chave promovida */
+  for(i = ORDEM/2; i < ORDEM; i++){
+    newP->chaves[i - ORDEM/2] = pSplit.chaves[i];
+  }
+
+  for(i = ORDEM/2; i < ORDEM-1; i++) {
+    newP->chaves[i].id = -1;
+    newP->chaves[i].offset = -1;
+  }
+
+  for(i = (ORDEM)/2; i < ORDEM + 1; i++){
+    newP->filhos[i - (ORDEM)/2] = pSplit.filhos[i];
+  }
+
+  for(i = (ORDEM)/2 + 1; i < ORDEM; i++)
+    newP->filhos[i] = -1;
+
+  newP->numeroChaves = ORDEM/2;
+  p->numeroChaves = ORDEM/2 - 1;
+  newP->RRNDaPagina = *contadorDePaginas;
+  (*contadorDePaginas)++;
+
+  *promo_key = pSplit.chaves[ORDEM/2 - 1];
+
+  }
+
   /* Recebe o endereco da nova pagina que esta a direta */
   *promo_r_child = newP->RRNDaPagina;
 }
-
-//funcao que adquire o RRN do no raiz
-/*int buscaRaiz(FILE *arq){
-    CABECALHO_BTREE cabecalho;
-    fseek(arq, 0, 0);
-    fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
-    return cabecalho.noRaiz;
-}*/
 
 void ler_btree(FILE *arq){
     arq = fopen("arvore.idx", "rb");
@@ -341,4 +375,46 @@ void atualizarBTree(FILE *index, CABECALHO_BTREE cabecalho){
     fseek(index, 0, SEEK_SET);
     fwrite(&cabecalho, sizeof(CABECALHO_BTREE), 1, index);
 
+}
+
+void exibirBT(FILE *index, FILE *logTxt, int root){
+    FILA F;
+    PAGINA p;
+    criaFila(&F);
+    push(&F, root);
+    int RRNAtual, i;
+    int filhosSuperior, filhosInferior;
+    //int controleNivel = 0;
+    int nivel = 0;
+
+    fseek(index, sizeof(CABECALHO_BTREE) + root*sizeof(PAGINA), SEEK_SET);
+    fread(&p, sizeof(PAGINA), 1, index);
+    filhosSuperior = p.numeroChaves + 1;
+    filhosInferior = 0;
+
+    while(!estaVazia(&F)){
+
+        pop(&F, &RRNAtual);
+        fseek(index, sizeof(CABECALHO_BTREE) + RRNAtual*sizeof(PAGINA), SEEK_SET);
+        fread(&p, sizeof(PAGINA), 1, index);
+        for(i = 0; i < ORDEM; i++){
+           if(p.filhos[i] != -1){
+                push(&F, p.filhos[i]);
+                filhosInferior++;
+           }
+        }
+
+        filhosSuperior--;
+
+        log_exibirBTree(logTxt, p, nivel);
+        if(nivel == 0){
+            nivel++;
+        }
+
+        if(filhosSuperior == 0){
+            filhosSuperior = filhosInferior;
+            nivel++;
+        }
+
+    }
 }
