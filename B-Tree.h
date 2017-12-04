@@ -3,7 +3,7 @@
 #ifndef BTREE_H_
 #define BTREE_H_
 
-#define ORDEM 6
+#define ORDEM 5
 #define TRUE 1
 #define FALSE 0
 #define PROMOTION 2

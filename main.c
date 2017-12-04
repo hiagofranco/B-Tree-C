@@ -252,7 +252,7 @@ int main() {
           chavePromovida.id = -1;
           chavePromovida.offset = -1;
 
-          //Escreve no arquivo de indice que ele esta desatualizado
+          //Escreve no arquivo de indice que ele esta desatualizado, ficara assim ate inserirmos todos registros
           desatualizarBTree(index, cabecalhoTree);
 
           // Insere o no raiz;
@@ -265,8 +265,6 @@ int main() {
           else {
                 log_insercao(logTxt, NULL, 3, NULL, &r);
           }
-
-          atualizarBTree(index, cabecalhoTree);
 
           while(fread(&size, sizeof(size), 1, arq)) {
 
@@ -288,7 +286,6 @@ int main() {
 
             log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
 
-            desatualizarBTree(index, cabecalhoTree);
             return_log = inserirBT(index, logTxt, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas));
 
             if(return_log == ERROR) log_insercao(logTxt, &chaveInserida, 4, NULL, NULL);
@@ -315,11 +312,9 @@ int main() {
               fseek(index, sizeof(CABECALHO_BTREE) + (newRoot.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
               fwrite(&newRoot, sizeof(PAGINA), 1, index);
             }
-
-            atualizarBTree(index, cabecalhoTree);
-
           }
-
+          //Aqui atualizamos a B-Tree apos inserirmos todos os registros
+          atualizarBTree(index, cabecalhoTree);
           fseek(index, 0, 0);
           fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
 
@@ -414,6 +409,8 @@ int main() {
             //Se a B-Tree nao estiver atualizada a reconstruimos integralmente a partir do arquivo de dados
             else {
 
+                printf("Arvore desatualizada! Criando uma B-Tree...\n");
+
                 /* Inicio do algoritmo de driver */
                 criaBT(index); //Cria a raiz e o cabecalho
                 index = fopen("arvore.idx", "rb+");
@@ -452,6 +449,7 @@ int main() {
                 chavePromovida.id = -1;
                 chavePromovida.offset = -1;
 
+                //Deixaremos a B-Tree desatualizada ate construirmos ela integralmente
                 desatualizarBTree(index, cabecalhoTree);
 
                 // Insere o no raiz;
@@ -464,8 +462,6 @@ int main() {
                 else {
                         log_insercao(logTxt, NULL, 3, NULL, &r);
                 }
-
-                atualizarBTree(index, cabecalhoTree);
 
                 while(fread(&size, sizeof(size), 1, arq)) {
 
@@ -486,8 +482,6 @@ int main() {
                     root = cabecalhoTree.noRaiz;
 
                     log_insercao(logTxt, &chaveInserida, 0, NULL, &r);
-
-                    desatualizarBTree(index, cabecalhoTree);
 
                     return_log = inserirBT(index, logTxt, root, &chaveInserida, &chavePromovida, &promo_r_child, &(cabecalhoTree.contadorDePaginas));
 
@@ -515,10 +509,9 @@ int main() {
                         fseek(index, sizeof(CABECALHO_BTREE) + (newRoot.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
                         fwrite(&newRoot, sizeof(PAGINA), 1, index);
                     }
-
-                    atualizarBTree(index, cabecalhoTree);
-
                 }
+                //Atualizamos a B-Tree apenas apos inserir todas as chaves
+                atualizarBTree(index, cabecalhoTree);
                 fseek(index, 0, 0);
                 fwrite(&cabecalhoTree, sizeof(CABECALHO_BTREE), 1, index);
 

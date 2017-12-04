@@ -248,86 +248,87 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
     }
   }
 
+  //Aqui verificamos se a ORDEM eh par ou impar para fazermos o split correto
   if(ORDEM % 2 != 0){
- /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
-  for(i = 0; i < ORDEM/2; i++)
-    p->chaves[i] = pSplit.chaves[i];
+    /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
+    for(i = 0; i < ORDEM/2; i++)
+        p->chaves[i] = pSplit.chaves[i];
 
-  for(i = ORDEM/2; i < ORDEM-1; i++) {
-    p->chaves[i].id = -1;
-    p->chaves[i].offset = -1;
-  }
+    for(i = ORDEM/2; i < ORDEM-1; i++) {
+        p->chaves[i].id = -1;
+        p->chaves[i].offset = -1;
+    }
 
-  for(i = 0; i < (ORDEM + 1)/2; i++)
-    p->filhos[i] = pSplit.filhos[i];
+    for(i = 0; i < (ORDEM + 1)/2; i++)
+        p->filhos[i] = pSplit.filhos[i];
 
-  for(i = (ORDEM + 1)/2; i < ORDEM; i++)
-    p->filhos[i] = -1;
+    for(i = (ORDEM + 1)/2; i < ORDEM; i++)
+        p->filhos[i] = -1;
 
-  /* Copia as chaves e os filhos de Psplit para newP a partir da chave promovida */
-  for(i = ORDEM/2 + 1; i < ORDEM; i++){
-    newP->chaves[i - ORDEM/2 - 1] = pSplit.chaves[i];
-  }
+    /* Copia as chaves e os filhos de Psplit para newP a partir da chave promovida */
+    for(i = ORDEM/2 + 1; i < ORDEM; i++){
+        newP->chaves[i - ORDEM/2 - 1] = pSplit.chaves[i];
+    }
 
-  for(i = ORDEM/2; i < ORDEM-1; i++) {
-    newP->chaves[i].id = -1;
-    newP->chaves[i].offset = -1;
-  }
+    for(i = ORDEM/2; i < ORDEM-1; i++) {
+        newP->chaves[i].id = -1;
+        newP->chaves[i].offset = -1;
+    }
 
-  for(i = (ORDEM + 1)/2; i < ORDEM + 1; i++){
-    newP->filhos[i - (ORDEM + 1)/2] = pSplit.filhos[i];
-  }
+    for(i = (ORDEM + 1)/2; i < ORDEM + 1; i++){
+        newP->filhos[i - (ORDEM + 1)/2] = pSplit.filhos[i];
+    }
 
-  for(i = (ORDEM + 1)/2; i < ORDEM; i++)
-    newP->filhos[i] = -1;
+    for(i = (ORDEM + 1)/2; i < ORDEM; i++)
+        newP->filhos[i] = -1;
 
-  newP->numeroChaves = ORDEM/2;
-  p->numeroChaves = ORDEM/2;
-  newP->RRNDaPagina = *contadorDePaginas;
-  (*contadorDePaginas)++;
+    newP->numeroChaves = ORDEM/2;
+    p->numeroChaves = ORDEM/2;
+    newP->RRNDaPagina = *contadorDePaginas;
+    (*contadorDePaginas)++;
 
-  *promo_key = pSplit.chaves[ORDEM/2];
+    *promo_key = pSplit.chaves[ORDEM/2];
 
   }
   else{
-   /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
-  for(i = 0; i < ORDEM/2 - 1; i++)
-    p->chaves[i] = pSplit.chaves[i];
+    /* Copia as chaves e os filhos de Psplit para P ate a chave promovida */
+    for(i = 0; i < ORDEM/2 - 1; i++)
+        p->chaves[i] = pSplit.chaves[i];
 
-  for(i = ORDEM/2 - 1; i < ORDEM-1; i++) {
-    p->chaves[i].id = -1;
-    p->chaves[i].offset = -1;
-  }
+    for(i = ORDEM/2 - 1; i < ORDEM-1; i++) {
+        p->chaves[i].id = -1;
+        p->chaves[i].offset = -1;
+    }
 
-  for(i = 0; i < (ORDEM)/2; i++)
-    p->filhos[i] = pSplit.filhos[i];
+    for(i = 0; i < (ORDEM)/2; i++)
+        p->filhos[i] = pSplit.filhos[i];
 
-  for(i = (ORDEM)/2; i < ORDEM; i++)
-    p->filhos[i] = -1;
+    for(i = (ORDEM)/2; i < ORDEM; i++)
+        p->filhos[i] = -1;
 
-  /* Copia as chaves e os filhos de Psplit para newP a partir da chave promovida */
-  for(i = ORDEM/2; i < ORDEM; i++){
-    newP->chaves[i - ORDEM/2] = pSplit.chaves[i];
-  }
+    /* Copia as chaves e os filhos de Psplit para newP a partir da chave promovida */
+    for(i = ORDEM/2; i < ORDEM; i++){
+        newP->chaves[i - ORDEM/2] = pSplit.chaves[i];
+    }
 
-  for(i = ORDEM/2; i < ORDEM-1; i++) {
-    newP->chaves[i].id = -1;
-    newP->chaves[i].offset = -1;
-  }
+    for(i = ORDEM/2; i < ORDEM-1; i++) {
+        newP->chaves[i].id = -1;
+        newP->chaves[i].offset = -1;
+    }
 
-  for(i = (ORDEM)/2; i < ORDEM + 1; i++){
-    newP->filhos[i - (ORDEM)/2] = pSplit.filhos[i];
-  }
+    for(i = (ORDEM)/2; i < ORDEM + 1; i++){
+        newP->filhos[i - (ORDEM)/2] = pSplit.filhos[i];
+    }
 
-  for(i = (ORDEM)/2 + 1; i < ORDEM; i++)
-    newP->filhos[i] = -1;
+    for(i = (ORDEM)/2 + 1; i < ORDEM; i++)
+        newP->filhos[i] = -1;
 
-  newP->numeroChaves = ORDEM/2;
-  p->numeroChaves = ORDEM/2 - 1;
-  newP->RRNDaPagina = *contadorDePaginas;
-  (*contadorDePaginas)++;
+    newP->numeroChaves = ORDEM/2;
+    p->numeroChaves = ORDEM/2 - 1;
+    newP->RRNDaPagina = *contadorDePaginas;
+    (*contadorDePaginas)++;
 
-  *promo_key = pSplit.chaves[ORDEM/2 - 1];
+    *promo_key = pSplit.chaves[ORDEM/2 - 1];
 
   }
 
