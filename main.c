@@ -59,10 +59,8 @@ int main() {
     "1. Criar indice.\n"
     "2. Inserir Musica.\n"
     "3. Pesquisar Musica por ID.\n"
-    "4. Exibir Arquivo da B-Tree.\n"
-    "5. Exibir Arquivo de dados.\n"
+    "5. Mostrar Arvore-B.\n"
     "6. Fechar o programa.\n"
-    "7. Mostrar Arvore-B.\n"
     "> ");
     scanf("%d", &option);
     clean_stdin();
@@ -555,24 +553,8 @@ int main() {
 
         break;
 
-      /* Funcionalidade 4 - Remocao	de musica	a	partir	do	Id */
-      case 4:
-          ler_btree(index);
-        break;
       /* Funcionalidade 5 - Mostrar	 �rvore-B */
       case 5:
-          arq = fopen("dados.dad", "rb+");
-          imprimirArquivoDados(arq);
-          fclose(arq);
-        break;
-      /* Sair do programa */
-      case 6:
-        printf("\nTchau! =)\n");
-        end = TRUE;
-        break;
-
-      case 7:
-
         index = fopen("arvore.idx", "rb+");
         if(!index) {
             printf("Erro ao abrir o arquivo de index na Funcionalidade <Mostrar Arvore-B>! (arvore.idx)\nSe a arvore ainda nao existir, insira algumas musicas com a Funcionalidade 2\n");
@@ -587,6 +569,12 @@ int main() {
 
         fclose(index);
 
+        break;
+
+      /* Sair do programa */
+      case 6:
+        printf("\nTchau! =)\n");
+        end = TRUE;
         break;
 
       /* Entrada default */

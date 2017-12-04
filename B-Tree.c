@@ -339,32 +339,6 @@ void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int 
   *promo_r_child = newP->RRNDaPagina;
 }
 
-void ler_btree(FILE *arq){
-    arq = fopen("arvore.idx", "rb");
-    fseek(arq, 0, 0);
-    CABECALHO_BTREE cabecalho;
-    PAGINA pag;
-    int i, j;
-    fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
-    printf("\nnoRaiz = %d   contadordePaginas = %d", cabecalho.noRaiz, cabecalho.contadorDePaginas);
-    for(j = 0; j < cabecalho.contadorDePaginas; j++){
-        fread(&pag, sizeof(PAGINA), 1, arq);
-        printf("\n\nRRNDaPagina = %d", pag.RRNDaPagina);
-        printf("\nnumeroChaves = %d\n", pag.numeroChaves);
-        i = 0;
-        while(i < ORDEM - 1 ){
-            printf("chaves[%d]: (ID = %d  Off = %ld)   ", i, pag.chaves[i].id, pag.chaves[i].offset);
-            i++;
-        }
-        printf("\n");
-        i = 0;
-        while(i < ORDEM){
-            printf("filhos[%d]: %d   ", i, pag.filhos[i]);
-            i++;
-        }
-    }
-}
-
 void desatualizarBTree(FILE *index, CABECALHO_BTREE cabecalho){
 
     cabecalho.estaAtualizada = FALSE;

@@ -23,6 +23,5 @@ char *parser(char *buffer, int *pos);
 void inserir_arquivo(FILE *arq,REGISTRO r);
 void inserir_registro(REGISTRO *r);
 void inserir_cabecalho(FILE *arq);
-void imprimirArquivoDados(FILE *arq);
 void lerRegistro(FILE *arq, REGISTRO *r, long int offset);
 #endif //REGISTRO_H_

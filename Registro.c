@@ -131,29 +131,6 @@ void inserir_registro(REGISTRO *r)
     } while(controle==1);
 }
 
-void imprimirArquivoDados(FILE *arq){
-    CABECALHO_DADOS c;
-    REGISTRO r;
-    char size, buffer[1000];
-    fread(&c, sizeof(CABECALHO_DADOS), 1, arq);
-
-    printf("\nByte Offset ultimo registro = %ld  ftell = %ld\n\n", c.byteoffset_ultimo, ftell(arq));
-
-    int j = 1;
-    while (fread(&size, sizeof(size), 1, arq))
-    {
-        printf("Byte Offset do %d registro = %ld\n", j, ftell(arq) - 1);
-        fread(buffer, size, 1, arq);
-        j++;
-
-        int pos = 0;
-        sscanf(parser(buffer, &pos), "%d", &r.id);
-        strcpy(r.titulo, parser(buffer, &pos));
-        strcpy(r.genero, parser(buffer, &pos));
-        printf("size: %d  ID: %d Titulo: %s Genero: %s\n\n", (int)size, r.id, r.titulo, r.genero);
-    }
-}
-
 void lerRegistro(FILE *arq, REGISTRO *r, long int offset){
     char buffer[1000], size;
 
