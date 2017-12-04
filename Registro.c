@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "B-Tree.h"
 #include "Registro.h"
 #include <ctype.h>
 
@@ -86,6 +87,10 @@ void inserir_registro(REGISTRO *r)
         }
         r->id = atoi(id);
 
+        if(id <= 0){
+
+        }
+
         printf("Titulo:");
         fgets(r->titulo, tamTitulo, stdin);
         r->titulo[strcspn(r->titulo, "\n")] = '\0';     /* strcspn procura a primeira ocorrencia  do segundo parametro no primeiro
@@ -130,19 +135,43 @@ void inserir_registro(REGISTRO *r)
     } while(controle==1);
 }
 
-void ler_ultimo_registro(FILE *arq, REGISTRO *r, CHAVE *c) {
-    char size;
-    long int i;
-    char buffer[1000];
+void imprimirArquivoDados(FILE *arq){
+    CABECALHO_DADOS c;
+    REGISTRO r;
+    char size, buffer[1000];
+    fread(&c, sizeof(CABECALHO_DADOS), 1, arq);
 
-    fread(&i, sizeof(CABECALHO_DADOS), 1, arq);
-    c->offset = i;
-    fseek(arq, i, SEEK_SET);
+    printf("\nByte Offset ultimo registro = %ld  ftell = %ld\n\n", c.byteoffset_ultimo, ftell(arq));
+
+    int j = 1;
+    while (fread(&size, sizeof(size), 1, arq))
+    {
+        printf("Byte Offset do %d registro = %ld\n", j, ftell(arq) - 1);
+        fread(buffer, size, 1, arq);
+        j++;
+
+        int pos = 0;
+        sscanf(parser(buffer, &pos), "%d", &r.id);
+        strcpy(r.titulo, parser(buffer, &pos));
+        strcpy(r.genero, parser(buffer, &pos));
+        printf("size: %d  ID: %d Titulo: %s Genero: %s\n\n", (int)size, r.id, r.titulo, r.genero);
+    }
+}
+
+void lerRegistro(FILE *arq, REGISTRO *r, long int offset){
+    char buffer[1000], size;
+
+    arq = fopen("dados.dad","rb+");
+    if(!arq){
+        printf("Erro na abertura do arquivo de dados (dados.dad)");
+        exit(1);
+    }
+    fseek(arq, offset, SEEK_SET);
 
     fread(&size, sizeof(size), 1, arq);
     fread(buffer, size, 1, arq);
     int pos = 0;
-    sscanf(parser(buffer, &pos), "%d", r->id);
+    sscanf(parser(buffer, &pos), "%d", &r->id);
     strcpy(r->titulo, parser(buffer, &pos));
     strcpy(r->genero, parser(buffer, &pos));
 }

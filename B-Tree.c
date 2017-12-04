@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Registro.h"
 #include "B-Tree.h"
+#include "Registro.h"
 #include "Log.h"
 
 void criaBT(FILE *arq) {
@@ -34,7 +34,7 @@ void criaBT(FILE *arq) {
 }
 
 /* Recebe primeiro o offset do no raiz */
-int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada) {
+int buscaBT(FILE *arq, int offset, int id, long int *offset_encontrado) {
 
   if(offset == -1)
     return FALSE;
@@ -44,27 +44,26 @@ int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_enc
     PAGINA p;
     int pos = 0;
 
-    fseek(arq, offset*sizeof(PAGINA), SEEK_SET); //Vai para a pagina raiz.
+    fseek(arq, sizeof(CABECALHO_BTREE) + offset*sizeof(PAGINA), SEEK_SET); //Vai para a pagina raiz.
     fread(&p, sizeof(PAGINA), 1, arq); //Le os dados da pagina raiz.
 
     int i;
-    /* Se a chave for maior que o ultimo elemento, entao a posicao ja devera ser o
-    ultimo elemento. (Lembre-se que o tamanho do vetor eh ORDEM-1, por isso o ultimo
-    elemento esta em ORDEM-2) */
-    if(chave > p.chaves[ORDEM-2].id)
-      pos = ORDEM-2;
-    else
-      for (i = 0; i < ORDEM-2; i++) //Aqui como ja foi verifcado a ultima pos, entao ORDEM-2.
-        if(chave > p.chaves[i].id)
-          pos++;
-
-    if(chave == p.chaves[pos].id) {
-      pos_encontrada = pos;
-      offset_encontrado = offset;
-      return TRUE;
+    for(i = 0; i < p.numeroChaves; i++){
+        if(id == p.chaves[i].id){
+            *offset_encontrado = p.chaves[i].offset;
+            return TRUE;
+        }
+        if(id < p.chaves[i].id){
+            pos = i;
+            break;
+        }
     }
-    else
-      return buscaBT(arq, p.filhos[pos], chave, offset_encontrado, pos_encontrada);
+
+    if(i == p.numeroChaves){
+        pos = i;
+    }
+
+    return buscaBT(arq, p.filhos[pos], id, offset_encontrado);
   }
 }
 
@@ -89,6 +88,7 @@ int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePro
   }
   else {
 
+    //Aqui pegamos as informacoes de uma pagina no disco e passamos para a memoria primaria para trabalharmos em cima delas
     fseek(arq, sizeof(CABECALHO_BTREE) + offset*sizeof(PAGINA), SEEK_SET);
     fread(&p, sizeof(PAGINA), 1, arq);
 
@@ -114,14 +114,14 @@ int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePro
     if(return_value == NO_PROMOTION || return_value == ERROR)
       return return_value;
 
-    /* Aqui, se tiver espaco no noh para inserir uma nova, entao fazemos uma Insercao
+    /* Aqui, se tiver espaco no noh para inserir uma nova chave, entao fazemos uma Insercao
     em vetor ordenado. Se nao, dividimos o no.*/
 
     else if(p.numeroChaves < ORDEM-1) { //Checa se ainda ha espaco.
       p.numeroChaves++;
       int posOrd, fim;
       posOrd = -1;
-      fim = ORDEM-1; //Verificar se eh inutil no futuro.
+      fim = ORDEM-1;
       /* Comeco do algoritmo de insercao em vetor ordenado. */
       for(i = 0; i < ORDEM-1; i++) {
         if(p.chaves[i].id == -1){
@@ -156,6 +156,7 @@ int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePro
       p.filhos[posOrd + 1] = *direitoChavePromovida;
       /* Fim do algoritmo de insercao em vetor ordenado e organizacao dos filhos. */
 
+      //Aqui escrevemos a informacao organizada em memoria RAM para o disco
       fseek(arq, sizeof(CABECALHO_BTREE) + (p.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&p, sizeof(PAGINA), 1, arq);
       return NO_PROMOTION;
@@ -163,12 +164,16 @@ int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePro
 
     else { //Insercao de chave com particionamento.
       split(arq, chave->id, chave->offset, &p, chavePromovida, direitoChavePromovida, &newP, contadorDePaginas, p.RRNDaPagina);
+
+      //Aqui procuramos o lugar correto do arquivo para escrevermos as informacoes
       fseek(arq, sizeof(CABECALHO_BTREE) + (p.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&p, sizeof(PAGINA), 1, arq);
       fseek(arq, sizeof(CABECALHO_BTREE) + (newP.RRNDaPagina)*sizeof(PAGINA), SEEK_SET);
       fwrite(&newP, sizeof(PAGINA), 1, arq);
 
+      //Temos que trocar a chave pela chavePromovida pois esta passa a ser a nova chave que deve ser inserida em um no
       *chave = *chavePromovida;
+      //Aqui modificamos o valor do filho direito pelo RRN da nova pagina criada
       *direitoChavePromovida = newP.RRNDaPagina;
 
       log_insercao(logTxt, NULL, 1, &p, NULL);
@@ -310,7 +315,7 @@ void ler_btree(FILE *arq){
         printf("\nnumeroChaves = %d\n", pag.numeroChaves);
         i = 0;
         while(i < ORDEM - 1 ){
-            printf("chaves[%d]: (ID = %d  Off = %d)   ", i, pag.chaves[i].id, pag.chaves[i].offset);
+            printf("chaves[%d]: (ID = %d  Off = %ld)   ", i, pag.chaves[i].id, pag.chaves[i].offset);
             i++;
         }
         printf("\n");
@@ -321,12 +326,19 @@ void ler_btree(FILE *arq){
         }
     }
 }
-/*
-void ler_criacao_btree(FILE *arq){
-    CABECALHO_BTREE cabecalho;
-    PAGINA pag;
-    fread(&cabecalho, sizeof(CABECALHO_BTREE), 1, arq);
-    fread(&pag, sizeof(PAGINA), 1, arq);
-    printf(" raiz: %d   estaAtualizada: %d\n ", cabecalho.noRaiz, cabecalho.estaAtualizada);
-    printf(" contador: %d  numeroChaves: %d  1filho: %d  isFolha: %d\n", pag.RRNDaPagina, pag.numeroChaves, pag.filhos[0], pag.isFolha);
-}*/
+
+void desatualizarBTree(FILE *index, CABECALHO_BTREE cabecalho){
+
+    cabecalho.estaAtualizada = FALSE;
+    fseek(index, 0, SEEK_SET);
+    fwrite(&cabecalho, sizeof(CABECALHO_BTREE), 1, index);
+
+}
+
+void atualizarBTree(FILE *index, CABECALHO_BTREE cabecalho){
+
+    cabecalho.estaAtualizada = TRUE;
+    fseek(index, 0, SEEK_SET);
+    fwrite(&cabecalho, sizeof(CABECALHO_BTREE), 1, index);
+
+}

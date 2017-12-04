@@ -18,7 +18,7 @@ typedef struct cabecalho {
 
 typedef struct chave {
   int id;
-  int offset;
+  long int offset;
 } CHAVE;
 
 typedef struct pagina {
@@ -37,10 +37,12 @@ typedef struct paginaSplit {
 
 void criaBT();
 int inserirBT(FILE *arq, FILE *logTxt, int offset, CHAVE *chave, CHAVE *chavePromovida, int *direitoChavePromovida, int *contadorDePaginas);
-int buscaBT(FILE *arq, int offset, int chave, int offset_encontrado, int pos_encontrada);
+int buscaBT(FILE *arq, int offset, int id, long int *offset_encontrado);
 void split(FILE *arq, int i_key, int i_offset, PAGINA *p, CHAVE *promo_key, int *promo_r_child, PAGINA *newP, int *contadorDePaginas, int RRNPaginaSplitada);
 void ler_criacao_btree(FILE *index);
 int buscaRaiz(FILE *arq);
 void ler_btree(FILE *arq);
+void desatualizarBTree(FILE *index, CABECALHO_BTREE cabecalho);
+void atualizarBTree(FILE *index, CABECALHO_BTREE cabecalho);
 
 #endif //BTREE_H_
