@@ -25,7 +25,7 @@ typedef struct pagina {
   int RRNDaPagina; // Guarda o numero da pagina na qual estamos.
   int numeroChaves; // Guarda o numero de chaves do no.
   CHAVE chaves[ORDEM-1]; // Vetor de chaves do no.
-  int filhos[ORDEM + 1]; // Armazena os enderecos referentes aos filhos.
+  int filhos[ORDEM]; // Armazena os enderecos referentes aos filhos.
 } PAGINA;
 
 /* Esta pagina sera somente utilizada no caso de um split, no qual precisamos
